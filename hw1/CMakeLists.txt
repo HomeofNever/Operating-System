@@ -3,4 +3,6 @@ project(hw1 C)
 
 set(CMAKE_C_STANDARD 99)
 
+# add_definitions(-D DEBUG_STATEMENT)
+
 add_executable(hw1 main.c)
