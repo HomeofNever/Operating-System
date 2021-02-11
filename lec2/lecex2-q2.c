@@ -5,13 +5,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-/* fork.c */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
 int main()
 {
     pid_t pid; /* process id (pid) -- unsigned short */
