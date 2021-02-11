@@ -19,12 +19,15 @@ int lecex2_child()
     if (lseek(fd, 5, SEEK_CUR) > 0 && read(fd, &letter, 1) > 0)
     {
         close(fd);
-        return letter;
+        exit(letter);
+        return EXIT_SUCCESS;
     }
 
     fprintf(stderr, "Error: failed read 6th character from data.txt\n");
     close(fd);
     abort();
+
+    return EXIT_FAILURE;
 }
 
 int lecex2_parent()
@@ -39,7 +42,7 @@ int lecex2_parent()
     }
     else
     {
-        printf("PARENT: child process reported '%c'\n", (status >> (8)) & 0xff);
+        printf("PARENT: child process reported '%c'\n", WEXITSTATUS(status));
     }
 
     return EXIT_SUCCESS;
