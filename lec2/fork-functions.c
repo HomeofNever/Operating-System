@@ -23,7 +23,7 @@ int lecex2_child()
         return EXIT_SUCCESS;
     }
 
-    fprintf(stderr, "Error: failed read 6th character from data.txt\n");
+    fprintf(stderr, "Error: failed to read 6th character from data.txt\n");
     close(fd);
     abort();
 

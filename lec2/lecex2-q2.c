@@ -7,6 +7,7 @@
 
 int main()
 {
+    setvbuf( stdout, NULL, _IONBF, 0 ); // for submitty ONLY
     pid_t pid; /* process id (pid) -- unsigned short */
     printf("PARENT: okay, start here.\n");
 

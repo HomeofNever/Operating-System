@@ -7,6 +7,7 @@
 
 int main()
 {
+  setvbuf( stdout, NULL, _IONBF, 0 ); // for submitty ONLY
   pid_t pid;    /* process id (pid) -- unsigned short */
   printf( "PARENT: okay, start here.\n");
 
@@ -23,16 +24,15 @@ int main()
   {
     /* the PID of the child process is returned in the parent */
     int status;
-    pid_t child_pid; 
 
-    child_pid = waitpid( pid, &status, 0 ); 
+    waitpid( pid, &status, 0 ); 
     if ( WIFSIGNALED( status ) ) {
       printf( "PARENT: ...abnormally (killed by a signal)\n" );
     }
     else /* if ( WEXITED( status ) ) */
     {
         printf( "PARENT: child process terminated successfully.\n");
-        printf( "PARENT: sigh, i'm gonna miss that little child process\n");
+        printf( "PARENT: sigh, i'm gonna miss that little child process.\n");
     }
   }
   else if ( pid == 0 )
