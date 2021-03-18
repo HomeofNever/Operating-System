@@ -1,0 +1,33 @@
+Process A [NEW] (arrival time 9 ms) 16 CPU bursts
+0.CPUBurst: 56ms
+1.IOBurst: 230ms
+2.CPUBurst: 60ms
+3.IOBurst: 1530ms
+4.CPUBurst: 39ms
+5.IOBurst: 500ms
+6.CPUBurst: 47ms
+7.IOBurst: 20ms
+8.CPUBurst: 137ms
+9.IOBurst: 240ms
+10.CPUBurst: 64ms
+11.IOBurst: 150ms
+12.CPUBurst: 68ms
+13.IOBurst: 640ms
+14.CPUBurst: 113ms
+15.IOBurst: 160ms
+16.CPUBurst: 11ms
+17.IOBurst: 1620ms
+18.CPUBurst: 24ms
+19.IOBurst: 1170ms
+20.CPUBurst: 76ms
+21.IOBurst: 280ms
+22.CPUBurst: 122ms
+23.IOBurst: 330ms
+24.CPUBurst: 9ms
+25.IOBurst: 680ms
+26.CPUBurst: 62ms
+27.IOBurst: 770ms
+28.CPUBurst: 200ms
+29.IOBurst: 110ms
+30.CPUBurst: 197ms
+
