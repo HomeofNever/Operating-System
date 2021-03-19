@@ -8,6 +8,12 @@ sh run.sh
 
 Assume you have python3 installed
 
+## Test
+
+```bash
+python3 burst.py # class comparison
+```
+
 ### Nixos
 
 ```bash

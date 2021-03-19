@@ -2,11 +2,11 @@ import sys
 import math
 from burst import Status, CPUBurst, IOBurst, Arrival
 from process import Process
+from fprocess import FProcess
 from copy import deepcopy
 from fcfs import FCFS
 
-output_template = """
-Algorithm {}
+output_template = """Algorithm {}
 -- average CPU burst time: {:.3f} ms
 -- average wait time: {:.3f} ms
 -- average turnaround time: {:.3f} ms
@@ -37,7 +37,7 @@ class Rand48(object):
 
 if __name__ == "__main__":
     if len(sys.argv) < 8 or len(sys.argv) > 9:
-        raise "Error: too many args"
+        raise Exception("Error: too many args")
 
     rr_behavior = Status.RR_END
     _, num_process, seed, lamb, rand_upper_bound, ctx_time, alpha, rr_time_slice = sys.argv
@@ -79,16 +79,18 @@ if __name__ == "__main__":
         burst = []
         arr_time = genFloor()
         cpu_burst = math.trunc(rand_generator.drand() * 100) + 1
+        counter = 1
         for j in range(cpu_burst - 1):
-            burst.append(CPUBurst(genCeil()))
-            burst.append(IOBurst(genCeil() * 10))
-        burst.append(CPUBurst(genCeil())) # add one more cpu time (than io)
+            burst.append(CPUBurst(genCeil(), pid, counter))
+            burst.append(IOBurst(genCeil() * 10, pid, counter))
+            counter += 1
+        burst.append(CPUBurst(genCeil(), pid, counter)) # add one more cpu time (than io)
         processes[pid] = Process(pid, arr_time, cpu_burst, burst)
     
     ### Print the process at each beginning
     def print_processes():
         for i in processes.values():
-            print(i.getSummary())
+            print(i.get_summary())
     
     def print_tasks():
         for i in processes.values():
@@ -108,16 +110,63 @@ if __name__ == "__main__":
         ## Look, here comes the FCFS Algo!
         print_processes()
         fcfs_algo = FCFS(deepcopy(processes), ctx_time)
-        avg_cpu_burst, avg_wait, avg_turnaround, cpu_utilization = fcfs_algo.run()
+        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, cpu_utilization = fcfs_algo.run()
         out_file.write(output_template.format(
             "FCFS",
             avg_cpu_burst,
             avg_wait,
             avg_turnaround,
-            0,
+            num_context_switch,
             0,
             cpu_utilization
         ))
+
+
+        # ### SJF
+        # print_processes()
+        # # @TODO run algo
+
+        # out_file.write(output_template.format(
+        #     "SJF",
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0
+        # ))
+    
+        # ### SRT
+        # print_processes()
+        # # @TODO run algo
+
+        # out_file.write(output_template.format(
+        #     "SRT",
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0
+        # ))
+
+        ### RR
+        # print_processes()
+        # # @TODO run algo
+
+        # out_file.write(output_template.format(
+        #     "RR",
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0
+        # ))
+    
+    # Remove this statement when finished @TODO
+    # This line is to ensure we have ended :)
+    print("Debug: done")
 
     
 

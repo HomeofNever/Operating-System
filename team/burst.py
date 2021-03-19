@@ -1,4 +1,5 @@
 class Status():
+    UNDEF = -1
     EMPTY = 0
     CPU = 1
     IO = 2
@@ -10,8 +11,12 @@ class Status():
     # Please add your own status here
 
 class Task():
-    def __init__(self, time):
+    ### pid reference helps when comparison
+    def __init__(self, time, pid, id=0):
+        self.id = id
         self.time = time
+        self.pid = pid
+        self.enter_at = 0
 
     '''
         This function decreases time by the amount provided, and return remaining
@@ -20,22 +25,33 @@ class Task():
         self.time -= time
 
         if self.time < 0:
-            raise "Awww, too much time here... Can't hold it! {}".format(self.time)
+            raise Exception("Awww, too much time here... {} can't hold it! {}".format(self.whoami(), self.time))
 
         return self.time
 
-    '''
-        this function identify the time provided and see
-        if time given is enough to consume
-    '''
-    def is_larger(self, time):
-        return self.time > time
-
     def whoami(self):
         return type(self).__name__
+    
+    def my_type(self):
+        return Status.UNDEF
 
     def __str__(self):
-        return '{}: {}ms'.format(self.whoami(), self.time)
+        return '[{}{}]{}: {}ms'.format(self.pid, self.id, self.whoami(), self.time)
+
+    ''' Comparison here intended to include pid '''
+    def __gt__(self, other):
+        if self.time == other.time:
+            if self.my_type() == other.my_type():
+                return self.pid > other.pid
+            else:
+                return self.my_type() > other.my_type()
+            
+        return self.time > other.time
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return self.whoami == other.whoami and self.time == other.time and self.pid == other.pid
 
 
 class CPUBurst(Task):
@@ -57,15 +73,24 @@ class ContextSwitch(Task):
 
 '''Test tool set'''
 if __name__ == "__main__":
-    task1 = Task(1)
+    task1 = Task(1, 'Z')
     print(task1)
 
-    CPU1 = CPUBurst(100)
+    CPU1 = CPUBurst(100, 'A')
     print("{}, isCPU: {}".format(CPU1, CPU1.my_type()))
 
-    IO1 = IOBurst(100)
+    IO1 = IOBurst(100, 'N')
     print("{}, isCPU: {}".format(IO1, IO1.my_type()))
 
     # Functions
     print('100ms - 10ms = {}'.format(CPU1.dec_time(10)))  # 90
-    print('100ms > 1000ms: {}'.format(IO1.is_larger(1000)))
+    print('100ms > 1000ms: {}'.format(IO1.time > 1000))
+
+    # Sort test
+    CPU2 = CPUBurst(1000, 'A')
+    CPU3 = CPUBurst(100, 'C')
+    CPU4 = CPUBurst(100, 'D')
+    ls = [CPU2, CPU3, CPU1, CPU4]
+    print("Before: " + ' '.join(str(e) for e in ls))
+    ls.sort()
+    print("After: " + ' '.join(str(e) for e in ls))

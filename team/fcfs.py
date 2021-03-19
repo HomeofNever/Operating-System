@@ -1,146 +1,177 @@
 from burst import Status, ContextSwitch
+from fprocess import FProcess
 
 class FCFS():
     def __init__(self, processes, ctx_time):
         self.processes = processes
-        self.ctx_time = ctx_time / 2 # in and out
+        for key in self.processes:
+            self.processes[key] = FProcess.get_fprocess(self.processes[key])
+        self.ended_processes = []
+        self.ctx_time = ctx_time / 2  # in and out
         self.queue = []
-        self.time = 0
-    
+        self.time = 0  # Total simulation time
+        self.current_process = None
+        self.cpu_time = 0  # total burst time
+        self.context_switch = 0
+
     def getQueueStr(self):
         if len(self.queue) == 0:
             return "<empty>"
         else:
             return " ".join(self.queue)
 
-    def findNextTask(self):
-        npid, ntask = None, None
-        for pid, process in self.processes:
-            task = process.peak()
-            if task:
-                if ntime is None:
-                    npid, ntask = pid, task
-                elif ntask.time > task.time:
-                    npid, ntime = pid, task
+    ''' Get next tasks, sorted '''
 
-        return npid, ntask
+    def findNextTasks(self):
+        ntasks = []
+        for process in self.processes.values():
+            ntasks.append(process.peak())
 
-    def apply_decrement(self, time):
-        for pid, process in self.processes:
-            task = process.dec_time(time)
-            if task.time == 0:
-                if task.my_type() == Status.CPU:
-                    print("time {}ms: Process {} completed a CPU burst; {} bursts to go [Q {}]".format(self.time, pid, process.get_remain_burst(), self.getQueueStr()))
-                    io = process.peak()
-                   
+        if len(ntasks) == 0:
+            return ntasks
+
+        if self.current_process != None:
+            # Remove all other CPU burst for now: they will have to wait
+            ntasks = [i for i in ntasks if i.pid ==
+                      self.current_process or i.my_type() != Status.CPU]
+
+        maxTime = ntasks[0].time
+        for i in ntasks:
+            if i.time < maxTime:
+                maxTime = i.time
+
+        ntasks = [i for i in ntasks if i.time <= maxTime]
+        ntasks.sort()
+        # print("MaxTime" + str(maxTime) + ' '.join(str(x) for x in ntasks))
+
+        return ntasks
+
+    def cpu_handler(self, current_cpu):
+        # Currently in progress
+        ntype = current_cpu.my_type()
+        npid = current_cpu.pid
+        ntime = current_cpu.time
+        if ntype == Status.CTX_SWITCH:
+            next_task = self.processes[npid].peak(1)
+            if next_task != None and next_task.my_type() == Status.CPU:
+                # Join the CPU
+                self.time += ntime
+                self.processes[npid].dec_first_time(ntime)
+                next_cpu_time = self.processes[npid].peak().time
+                print("time {:.0f}ms: Process {} started using the CPU for {:.0f}ms burst [Q {}]".format(
+                    self.time, npid, next_cpu_time, self.getQueueStr()))
+                self.processes[npid].in_cpu = True
+                # ctx only count once, as here we have divided into two parts
+                self.context_switch += 1
+            else:
+                # Leaving the CPU
+                self.processes[npid].dec_first_time(ntime)
+                self.processes[npid].in_cpu = False
+                self.current_process = None
+                # Here we need to end the process, if this is it's last switch
+                if self.processes[npid].peak() is None:
+                    ### Termination Point ###
+                    print("time {:.0f}ms: Process {} terminated [Q {}]".format(
+                        self.time, npid, self.getQueueStr()))
+                    self.processes[npid].time = self.time
+                    self.ended_processes.append(self.processes[npid])
+                    del self.processes[npid]
+                # Now, record the time
+                self.time += ntime
+        # Active CPU time
+        elif ntype == Status.CPU:
+            self.time += ntime
+            self.cpu_time += ntime
+            self.processes[npid].dec_first_time(ntime)
+            remain_burst = self.processes[npid].get_remain_burst()
+            if remain_burst > 0:
+                print("time {:.0f}ms: Process {} completed a CPU burst; {} burst{} to go [Q {}]".format(
+                    self.time, npid, remain_burst,
+                    '' if remain_burst == 1 else 's', self.getQueueStr()))
+                io = self.processes[npid].peak()
+                # Try if there is a IO followed, if nothing, it will switch out and terminate
+                if io:
+                    print("time {:.0f}ms: Process {} switching out of CPU; will block on I/O until time {:.0f}ms [Q {}]".format(
+                        self.time, npid, self.time + self.ctx_time + io.time, self.getQueueStr()))
+            self.processes[npid].set_prepend(
+                ContextSwitch(self.ctx_time, npid))
+
+    '''
+        So our process is: 
+        1) find the first arrvial time/task time
+        2) If it complete, search for the next one
+        
+        During the process:
+        1) need to re-added task to the queue: IO may have finished
+        2) remove processes when they have finished
+    '''
 
     def run(self):
         print("time 0ms: Simulator started for FCFS [Q <empty>]")
-        '''
-            So our process is: 
-            1) find the first arrvial time/task time
-            2) If it complete, search for the next one
-            
-            During the process:
-            1) need to re-added task to the queue: IO may have finished
-            2) delete all processes time
-        '''
         while len(self.processes) != 0:
-            npid, ntask = self.findNextTask()
-            ntime = ntask.time
-            ntype = ntask.my_type()
+            current_cpu = self.processes[self.current_process].peak(
+            ) if self.current_process != None else None
+            # Add CPU task if possible
+            if current_cpu == None and len(self.queue) > 0:
+                # Find a task to fill in, could be none
+                task = self.processes[self.queue[0]].peak()
+                npid = task.pid
+                # Filling Task into CPU
+                self.processes[npid].set_prepend(
+                    ContextSwitch(self.ctx_time, npid))
+                self.current_process = npid
+                self.queue.pop(0)
 
-            self.time += ntime
-            if ntype == Status.ARRIVING:
-                self.queue.append(npid)
-                print("time {}ms: Process {} arrived; placed on ready queue [Q {}]".format(self.time, npid, self.getQueueStr()))
-                self.processes[npid].prepend = ContextSwitch(self.ctx_time)
-            elif ntype == Status.CPU:
-                if self.queue[0] and self.queue[0] == npid:
-                    ### Join the CPU
-                    self.queue.pop()
-                    print("time {}ms: Process {} started using the CPU for {}ms burst [Q {}]".format(self.time, npid, ntime, self.getQueueStr()))
-                else:
-                    ### Leaving the CPU
-                    io = self.processes[npid].peak()
-                    print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms [Q {}]".format(self.time, npid, self.time + io.time, self.getQueueStr()))
-                    self.processes[npid].prepend = ContextSwitch(self.ctx_time)
-            elif ntype == Status.IO:
-                ### Join the Queue
-                print("time 2507ms: Process A completed I/O; placed on ready queue [Q A]")
+            affected_pids = []
+            ntasks = self.findNextTasks()
+            ntime = ntasks[0].time
+            # print(' '.join(str(x) for x in ntasks))
+            # print("advance: {}".format(ntime))
+            # As there could be only one CPU/CTX running at a time, add time only when there is a CPU
+            cpu_task = [c for c in ntasks if c.my_type(
+            ) == Status.CPU or c.my_type() == Status.CTX_SWITCH]
+            for task in cpu_task:
+                if task.pid == self.current_process:
+                    self.cpu_handler(task)
+                    affected_pids.append(task.pid)
+            # Advance time if cpu_handler is not running
+            if len(affected_pids) == 0:
+                self.time += ntime
 
-            
-            self.apply_decrement(ntime)
-        
+            for task in ntasks:
+                npid = task.pid
+                ntype = task.my_type()
+                if npid not in affected_pids:
+                    affected_pids.append(npid)
+                    # Always decreasing
+                    if ntype == Status.IO:
+                        self.queue.append(npid)
+                        print("time {:.0f}ms: Process {} completed I/O; placed on ready queue [Q {}]".format(
+                            self.time, npid, self.getQueueStr()))
+                    elif ntype == Status.ARRIVING:
+                        self.queue.append(npid)
+                        print("time {:.0f}ms: Process {} arrived; placed on ready queue [Q {}]".format(
+                            self.time, npid, self.getQueueStr()))
+                    self.processes[npid].dec_first_time(ntime)
 
+            for pid, process in self.processes.items():
+                if pid not in affected_pids:
+                    process.dec_wait_time(ntime)
 
+        print(
+            "time {:.0f}ms: Simulator ended for FCFS [Q <empty>]".format(self.time))
 
+        total_burst_time = 0
+        total_wait_time = 0
+        total_burst = 0
 
+        for i in self.ended_processes:
+            total_burst_time += i.get_total_burst_time()
+            total_wait_time += i.get_wait_time()
+            total_burst += i.get_cpu_burst()
 
-
-# Process A [NEW] (arrival time 9 ms) 16 CPU bursts
-# time 0ms: Simulator started for FCFS [Q <empty>]
-# time 9ms: Process A arrived; placed on ready queue [Q A]
-# time 11ms: Process A started using the CPU for 56ms burst [Q <empty>]
-# time 67ms: Process A completed a CPU burst; 15 bursts to go [Q <empty>]
-# time 67ms: Process A switching out of CPU; will block on I/O until time 299ms [Q <empty>]
-# time 299ms: Process A completed I/O; placed on ready queue [Q A]
-# time 301ms: Process A started using the CPU for 60ms burst [Q <empty>]
-# time 361ms: Process A completed a CPU burst; 14 bursts to go [Q <empty>]
-# time 361ms: Process A switching out of CPU; will block on I/O until time 1893ms [Q <empty>]
-# time 1893ms: Process A completed I/O; placed on ready queue [Q A]
-# time 1895ms: Process A started using the CPU for 39ms burst [Q <empty>]
-# time 1934ms: Process A completed a CPU burst; 13 bursts to go [Q <empty>]
-# time 1934ms: Process A switching out of CPU; will block on I/O until time 2436ms [Q <empty>]
-# time 2436ms: Process A completed I/O; placed on ready queue [Q A]
-# time 2438ms: Process A started using the CPU for 47ms burst [Q <empty>]
-# time 2485ms: Process A completed a CPU burst; 12 bursts to go [Q <empty>]
-# time 2485ms: Process A switching out of CPU; will block on I/O until time 2507ms [Q <empty>]
-# time 2507ms: Process A completed I/O; placed on ready queue [Q A]
-# time 2509ms: Process A started using the CPU for 137ms burst [Q <empty>]
-# time 2646ms: Process A completed a CPU burst; 11 bursts to go [Q <empty>]
-# time 2646ms: Process A switching out of CPU; will block on I/O until time 2888ms [Q <empty>]
-# time 2888ms: Process A completed I/O; placed on ready queue [Q A]
-# time 2890ms: Process A started using the CPU for 64ms burst [Q <empty>]
-# time 2954ms: Process A completed a CPU burst; 10 bursts to go [Q <empty>]
-# time 2954ms: Process A switching out of CPU; will block on I/O until time 3106ms [Q <empty>]
-# time 3106ms: Process A completed I/O; placed on ready queue [Q A]
-# time 3108ms: Process A started using the CPU for 68ms burst [Q <empty>]
-# time 3176ms: Process A completed a CPU burst; 9 bursts to go [Q <empty>]
-# time 3176ms: Process A switching out of CPU; will block on I/O until time 3818ms [Q <empty>]
-# time 3818ms: Process A completed I/O; placed on ready queue [Q A]
-# time 3820ms: Process A started using the CPU for 113ms burst [Q <empty>]
-# time 3933ms: Process A completed a CPU burst; 8 bursts to go [Q <empty>]
-# time 3933ms: Process A switching out of CPU; will block on I/O until time 4095ms [Q <empty>]
-# time 4095ms: Process A completed I/O; placed on ready queue [Q A]
-# time 4097ms: Process A started using the CPU for 11ms burst [Q <empty>]
-# time 4108ms: Process A completed a CPU burst; 7 bursts to go [Q <empty>]
-# time 4108ms: Process A switching out of CPU; will block on I/O until time 5730ms [Q <empty>]
-# time 5730ms: Process A completed I/O; placed on ready queue [Q A]
-# time 5732ms: Process A started using the CPU for 24ms burst [Q <empty>]
-# time 5756ms: Process A completed a CPU burst; 6 bursts to go [Q <empty>]
-# time 5756ms: Process A switching out of CPU; will block on I/O until time 6928ms [Q <empty>]
-# time 6928ms: Process A completed I/O; placed on ready queue [Q A]
-# time 6930ms: Process A started using the CPU for 76ms burst [Q <empty>]
-# time 7006ms: Process A completed a CPU burst; 5 bursts to go [Q <empty>]
-# time 7006ms: Process A switching out of CPU; will block on I/O until time 7288ms [Q <empty>]
-# time 7288ms: Process A completed I/O; placed on ready queue [Q A]
-# time 7290ms: Process A started using the CPU for 122ms burst [Q <empty>]
-# time 7412ms: Process A completed a CPU burst; 4 bursts to go [Q <empty>]
-# time 7412ms: Process A switching out of CPU; will block on I/O until time 7744ms [Q <empty>]
-# time 7744ms: Process A completed I/O; placed on ready queue [Q A]
-# time 7746ms: Process A started using the CPU for 9ms burst [Q <empty>]
-# time 7755ms: Process A completed a CPU burst; 3 bursts to go [Q <empty>]
-# time 7755ms: Process A switching out of CPU; will block on I/O until time 8437ms [Q <empty>]
-# time 8437ms: Process A completed I/O; placed on ready queue [Q A]
-# time 8439ms: Process A started using the CPU for 62ms burst [Q <empty>]
-# time 8501ms: Process A completed a CPU burst; 2 bursts to go [Q <empty>]
-# time 8501ms: Process A switching out of CPU; will block on I/O until time 9273ms [Q <empty>]
-# time 9273ms: Process A completed I/O; placed on ready queue [Q A]
-# time 9275ms: Process A started using the CPU for 200ms burst [Q <empty>]
-# time 9475ms: Process A completed a CPU burst; 1 burst to go [Q <empty>]
-# time 9475ms: Process A switching out of CPU; will block on I/O until time 9587ms [Q <empty>]
-# time 9587ms: Process A completed I/O; placed on ready queue [Q A]
-# time 9589ms: Process A started using the CPU for 197ms burst [Q <empty>]
-# time 9786ms: Process A terminated [Q <empty>]
-# time 9788ms: Simulator ended for FCFS [Q <empty>]
+        return (total_burst_time / total_burst,
+                total_wait_time / total_burst,
+                (total_burst_time + self.context_switch * self.ctx_time * 2 + total_wait_time) / total_burst,
+                self.context_switch,
+                total_burst_time / self.time * 100)
