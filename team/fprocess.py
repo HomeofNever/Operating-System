@@ -17,6 +17,7 @@ class FProcess(Process):
         self.time = 0 # used to calculate turnaround time
         self.wait_time = 0 # time where process in the queue
         self.in_cpu = False # Identify current wait state
+        self.switching = False # Identify the process is in switching state
 
     '''
         Quick Peak of first task

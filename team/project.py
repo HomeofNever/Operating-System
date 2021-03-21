@@ -5,6 +5,7 @@ from process import Process
 from fprocess import FProcess
 from copy import deepcopy
 from fcfs import FCFS
+from rr import RR
 
 output_template = """Algorithm {}
 -- average CPU burst time: {:.3f} ms
@@ -37,7 +38,7 @@ class Rand48(object):
 
 if __name__ == "__main__":
     if len(sys.argv) < 8 or len(sys.argv) > 9:
-        raise Exception("Error: too many args")
+        raise Exception("Error: invalid args")
 
     rr_behavior = Status.RR_END
     _, num_process, seed, lamb, rand_upper_bound, ctx_time, alpha, rr_time_slice = sys.argv
@@ -121,7 +122,6 @@ if __name__ == "__main__":
             cpu_utilization
         ))
 
-
         # ### SJF
         # print_processes()
         # # @TODO run algo
@@ -150,19 +150,20 @@ if __name__ == "__main__":
         #     0
         # ))
 
-        ### RR
-        # print_processes()
-        # # @TODO run algo
-
-        # out_file.write(output_template.format(
-        #     "RR",
-        #     0,
-        #     0,
-        #     0,
-        #     0,
-        #     0,
-        #     0
-        # ))
+        ## RR
+        print()
+        print_processes()
+        rr_algo = RR(deepcopy(processes), ctx_time, rr_time_slice, rr_behavior)
+        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, num_preemption, cpu_utilization = rr_algo.run()
+        out_file.write(output_template.format(
+            "RR",
+            avg_cpu_burst,
+            avg_wait,
+            avg_turnaround,
+            num_context_switch,
+            num_preemption,
+            cpu_utilization
+        ))
     
     # Remove this statement when finished @TODO
     # This line is to ensure we have ended :)

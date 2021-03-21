@@ -17,6 +17,7 @@ class Task():
         self.time = time
         self.pid = pid
         self.enter_at = 0
+        self.preempted = False
 
     '''
         This function decreases time by the amount provided, and return remaining

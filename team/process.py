@@ -21,6 +21,9 @@ class Process():
 
     def get_cpu_burst(self):
         return self.basic_info['cpu_burst']
+    
+    def get_burst(self):
+        return self.burst
 
     ''' 
         Tools for preemption
