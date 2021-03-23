@@ -15,6 +15,7 @@ class Task():
     def __init__(self, time, pid, id=0):
         self.id = id
         self.time = time
+        self.total_time = time
         self.pid = pid
         self.enter_at = 0
         self.preempted = False

@@ -1,18 +1,30 @@
 from burst import Status, ContextSwitch
 from fprocess import FProcess
+from math import ceil
 
-class FCFS():
-    def __init__(self, processes, ctx_time):
+class SRT():
+    def __init__(self, processes, ctx_time, alpha, lam):
         self.processes = processes
+        self.taus = {}
         for key in self.processes:
             self.processes[key] = FProcess.get_fprocess(self.processes[key])
+            self.taus[key] = ceil(1/lam)
+        for j, i in processes.items():
+            print(i.get_summary()+' (tau {}ms)'.format(self.taus[j]))
         self.ended_processes = []
-        self.ctx_time = ctx_time / 2  # in and out
+        self.ctx_time = ctx_time // 2
         self.queue = []
         self.time = 0  # Total simulation time
         self.current_process = None
+        self.current_burst = None
+        self.current_burst_time = 0
         self.cpu_time = 0  # total burst time
         self.context_switch = 0
+        self.preemption = 0
+        self.io = []
+
+        self.alpha = alpha
+        return
 
     def getQueueStr(self):
         if len(self.queue) == 0:
@@ -82,12 +94,16 @@ class FCFS():
         elif ntype == Status.CPU:
             self.time += ntime
             self.cpu_time += ntime
+            last_burst_time = self.processes[npid].burst[0].total_time
             self.processes[npid].dec_first_time(ntime)
             remain_burst = self.processes[npid].get_remain_burst()
             if remain_burst > 0:
                 print("time {:.0f}ms: Process {} completed a CPU burst; {} burst{} to go [Q {}]".format(
                     self.time, npid, remain_burst,
                     '' if remain_burst == 1 else 's', self.getQueueStr()))
+                self.taus[npid] = ceil(self.taus[npid]*(1-self.alpha) + last_burst_time*self.alpha)
+                print("time {:.0f}ms: Recalculated tau ({}ms) for process {} [Q {}]".format(
+                    self.time, self.taus[npid], npid, self.getQueueStr()))
                 io = self.processes[npid].peak()
                 # Try if there is a IO followed, if nothing, it will switch out and terminate
                 if io:
@@ -107,13 +123,14 @@ class FCFS():
     '''
 
     def run(self):
-        print("time 0ms: Simulator started for FCFS [Q <empty>]")
+        print("time 0ms: Simulator started for SRT [Q <empty>]")
         while len(self.processes) != 0:
             current_cpu = self.processes[self.current_process].peak(
             ) if self.current_process != None else None
             # Add CPU task if possible
             if current_cpu == None and len(self.queue) > 0:
                 # Find a task to fill in, could be none
+                self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
                 task = self.processes[self.queue[0]].peak()
                 npid = task.pid
                 # Filling Task into CPU
@@ -146,10 +163,12 @@ class FCFS():
                     # Always decreasing
                     if ntype == Status.IO:
                         self.queue.append(npid)
+                        self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
                         print("time {:.0f}ms: Process {} completed I/O; placed on ready queue [Q {}]".format(
                             self.time, npid, self.getQueueStr()))
                     elif ntype == Status.ARRIVING:
                         self.queue.append(npid)
+                        self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
                         print("time {:.0f}ms: Process {} arrived; placed on ready queue [Q {}]".format(
                             self.time, npid, self.getQueueStr()))
                     self.processes[npid].dec_first_time(ntime)
@@ -159,7 +178,7 @@ class FCFS():
                     process.dec_wait_time(ntime)
 
         print(
-            "time {:.0f}ms: Simulator ended for FCFS [Q <empty>]".format(self.time))
+            "time {:.0f}ms: Simulator ended for SRT [Q <empty>]".format(self.time))
 
         total_burst_time = 0
         total_wait_time = 0
