@@ -38,9 +38,8 @@ class RR():
                 num_remaining_burst = len(burst) // 2
                 # If this process have no further burst, terminate it
                 if num_remaining_burst == 0:
-                    if self.time <= 999:
-                        print("time {}ms: Process {} terminated [Q {}]".\
-                            format(self.time, pid, self.output_queue()))
+                    print("time {}ms: Process {} terminated [Q {}]".\
+                        format(self.time, pid, self.output_queue()))
                     self.ended_processes.append(self.processes[pid])
                     self.processes.pop(pid)
                 else: # we have io to do
