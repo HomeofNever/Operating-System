@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
         ### SJF
         print()
-        print_processes()
+        # print_processes() ** controlled by method run **
         sjf_algo = SJF(deepcopy(processes), ctx_time, alpha, lamb)
         avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, _, cpu_utilization = sjf_algo.run()
         out_file.write(output_template.format(
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     
         # ### SRT
         print()
-        print_processes()
+        # print_processes() ** controlled by method run **
         srt_algo = SRT(deepcopy(processes), ctx_time, alpha, lamb)
         avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, num_preemption, cpu_utilization = srt_algo.run()
         out_file.write(output_template.format(
