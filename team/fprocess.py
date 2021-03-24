@@ -81,7 +81,7 @@ class FProcess(Process):
                 # so we need to add this time
                 self.dec_first_time(time)
                 self.wait_time += time
-            elif the_type is Status.ARRIVING or the_type is Status.IO:
+            elif the_type is Status.ARRIVING or the_type is Status.IO or the_type is Status.CTX_SWITCH:
                 self.dec_first_time(time)
             elif self.in_cpu == True and the_type == Status.CPU:
                 # If we are in CPU, we should decrease as well
