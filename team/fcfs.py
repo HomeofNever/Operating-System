@@ -58,7 +58,8 @@ class FCFS():
                 self.time += ntime
                 self.processes[npid].dec_first_time(ntime)
                 next_cpu_time = self.processes[npid].peak().time
-                print("time {:.0f}ms: Process {} started using the CPU for {:.0f}ms burst [Q {}]".format(
+                if self.time <= 999:
+                    print("time {:.0f}ms: Process {} started using the CPU for {:.0f}ms burst [Q {}]".format(
                     self.time, npid, next_cpu_time, self.getQueueStr()))
                 self.processes[npid].in_cpu = True
                 # ctx only count once, as here we have divided into two parts
@@ -85,14 +86,16 @@ class FCFS():
             self.processes[npid].dec_first_time(ntime)
             remain_burst = self.processes[npid].get_remain_burst()
             if remain_burst > 0:
-                print("time {:.0f}ms: Process {} completed a CPU burst; {} burst{} to go [Q {}]".format(
-                    self.time, npid, remain_burst,
-                    '' if remain_burst == 1 else 's', self.getQueueStr()))
+                if self.time <= 999:
+                    print("time {:.0f}ms: Process {} completed a CPU burst; {} burst{} to go [Q {}]".format(
+                        self.time, npid, remain_burst,
+                        '' if remain_burst == 1 else 's', self.getQueueStr()))
                 io = self.processes[npid].peak()
                 # Try if there is a IO followed, if nothing, it will switch out and terminate
                 if io:
-                    print("time {:.0f}ms: Process {} switching out of CPU; will block on I/O until time {:.0f}ms [Q {}]".format(
-                        self.time, npid, self.time + self.ctx_time + io.time, self.getQueueStr()))
+                    if self.time <= 999:
+                        print("time {:.0f}ms: Process {} switching out of CPU; will block on I/O until time {:.0f}ms [Q {}]".format(
+                            self.time, npid, self.time + self.ctx_time + io.time, self.getQueueStr()))
             self.processes[npid].set_prepend(
                 ContextSwitch(self.ctx_time, npid))
 
@@ -146,12 +149,14 @@ class FCFS():
                     # Always decreasing
                     if ntype == Status.IO:
                         self.queue.append(npid)
-                        print("time {:.0f}ms: Process {} completed I/O; placed on ready queue [Q {}]".format(
-                            self.time, npid, self.getQueueStr()))
+                        if self.time <= 999:
+                            print("time {:.0f}ms: Process {} completed I/O; placed on ready queue [Q {}]".format(
+                                self.time, npid, self.getQueueStr()))
                     elif ntype == Status.ARRIVING:
                         self.queue.append(npid)
-                        print("time {:.0f}ms: Process {} arrived; placed on ready queue [Q {}]".format(
-                            self.time, npid, self.getQueueStr()))
+                        if self.time <= 999:
+                            print("time {:.0f}ms: Process {} arrived; placed on ready queue [Q {}]".format(
+                                self.time, npid, self.getQueueStr()))
                     self.processes[npid].dec_first_time(ntime)
 
             for pid, process in self.processes.items():

@@ -8,7 +8,6 @@ class Process():
             'cpu_burst': cpu_burst
         }
         self.burst = burst # [Task]: list of CPU/IO
-        # self.preempted = False
 
         # Note for RR: you may inherient this class if you found
         # more attributes or behavior needed to be override.
@@ -25,22 +24,6 @@ class Process():
     def get_burst(self):
         return self.burst
 
-    ''' 
-        Tools for preemption
-    '''
-    # def is_preempted(self):
-    #     return self.preempted
-
-    # def reset_preempted(self):
-    #     self.preempted = False
-    
-    # def set_preempted(self):
-    #     if not self.preempted:
-    #         self.preempted = True
-    #         self.wait_turn += 1
-    #     else:
-    #         raise Exception("Process {} has preempted but tried to preemept again before resume. Maybe something goes wrong".format(self.get_pid()))
-    
     ''' Representation '''
     def get_summary(self):
         return 'Process {} [NEW] (arrival time {} ms) {} CPU burst{}'.format(

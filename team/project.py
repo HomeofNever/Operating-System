@@ -104,7 +104,7 @@ if __name__ == "__main__":
     with open('simout.txt', 'w') as out_file:
         ## Now we have the processes, let's go
 
-        ## Always remember the sequence! when out_file
+        ## Always remember the sequence! when out_file!
         ## name, AVG CPU Burst Time, Average Wait Time
         ## Average TurnAround Time, # of context switches
         ## # of preemptions, CPU utilization %
@@ -126,6 +126,7 @@ if __name__ == "__main__":
 
         ### SJF
         print()
+        print_processes()
         sjf_algo = SJF(deepcopy(processes), ctx_time, alpha, lamb)
         avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, _, cpu_utilization = sjf_algo.run()
         out_file.write(output_template.format(
@@ -139,10 +140,8 @@ if __name__ == "__main__":
         ))
     
         # ### SRT
-        # print_processes()
-        # # @TODO run algo
-
         print()
+        print_processes()
         srt_algo = SRT(deepcopy(processes), ctx_time, alpha, lamb)
         avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, num_preemption, cpu_utilization = srt_algo.run()
         out_file.write(output_template.format(
