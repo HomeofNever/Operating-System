@@ -111,18 +111,18 @@ if __name__ == "__main__":
         ## Also, **copy the processes**
 
         ## Look, here comes the FCFS Algo!
-        # print_processes()
-        # fcfs_algo = FCFS(deepcopy(processes), ctx_time)
-        # avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, cpu_utilization = fcfs_algo.run()
-        # out_file.write(output_template.format(
-        #     "FCFS",
-        #     avg_cpu_burst,
-        #     avg_wait,
-        #     avg_turnaround,
-        #     num_context_switch,
-        #     0,
-        #     cpu_utilization
-        # ))
+        print_processes()
+        fcfs_algo = FCFS(deepcopy(processes), ctx_time)
+        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, cpu_utilization = fcfs_algo.run()
+        out_file.write(output_template.format(
+            "FCFS",
+            avg_cpu_burst,
+            avg_wait,
+            avg_turnaround,
+            num_context_switch,
+            0,
+            cpu_utilization
+        ))
 
         ### SJF
         print()
@@ -156,19 +156,19 @@ if __name__ == "__main__":
         ))
 
         ## RR
-        # print()
-        # print_processes()
-        # rr_algo = RR(deepcopy(processes), ctx_time, rr_time_slice, rr_behavior)
-        # avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, num_preemption, cpu_utilization = rr_algo.run()
-        # out_file.write(output_template.format(
-        #     "RR",
-        #     avg_cpu_burst,
-        #     avg_wait,
-        #     avg_turnaround,
-        #     num_context_switch,
-        #     num_preemption,
-        #     cpu_utilization
-        # ))
+        print()
+        print_processes()
+        rr_algo = RR(deepcopy(processes), ctx_time, rr_time_slice, rr_behavior)
+        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, num_preemption, cpu_utilization = rr_algo.run()
+        out_file.write(output_template.format(
+            "RR",
+            avg_cpu_burst,
+            avg_wait,
+            avg_turnaround,
+            num_context_switch,
+            num_preemption,
+            cpu_utilization
+        ))
     
     # Remove this statement when finished @TODO
     # This line is to ensure we have ended :) No way!
