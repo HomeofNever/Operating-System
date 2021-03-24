@@ -76,12 +76,7 @@ class FProcess(Process):
             the_type = curr.my_type()
             # Always decreasing arriving time or IO time
             # May add more types here
-            if the_type is Status.CTX_SWITCH and not self.in_cpu:
-                # it is about to get in the CPU, but used to be in the ready queue
-                # so we need to add this time
-                self.dec_first_time(time)
-                self.wait_time += time
-            elif the_type is Status.ARRIVING or the_type is Status.IO or the_type is Status.CTX_SWITCH:
+            if the_type is Status.ARRIVING or the_type is Status.IO or the_type is Status.CTX_SWITCH:
                 self.dec_first_time(time)
             elif self.in_cpu == True and the_type == Status.CPU:
                 # If we are in CPU, we should decrease as well

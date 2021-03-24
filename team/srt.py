@@ -43,22 +43,25 @@ class SRT():
                 num_remaining_burst = len(burst) // 2
                 # If this process have no further burst, terminate it
                 if num_remaining_burst == 0:
-                    if self.time < 1000:
-                        print("time {}ms: Process {} terminated [Q {}]". \
+                    print("time {}ms: Process {} terminated [Q {}]". \
                           format(self.time, pid, self.output_queue()))
                     self.ended_processes.append(self.processes[pid])
                     self.processes.pop(pid)
                 else: # we have io to do
+
                     if self.time < 1000:
-                        print("time {}ms: Process {} completed a CPU burst; {} {} to go [Q {}]". \
-                          format(self.time, pid, num_remaining_burst, ["bursts","burst"][num_remaining_burst==1], self.output_queue()))
+                        print("time {}ms: Process {} (tau {}ms) completed a CPU burst; {} {} to go [Q {}]". \
+                          format(self.time, pid, self.taus[pid], num_remaining_burst, ["bursts","burst"][num_remaining_burst==1], self.output_queue()))
+                    self.taus[pid] = ceil(self.taus[pid]*(1-self.alpha) + self.current_burst.total_time*self.alpha)
+                    if self.time < 1000:
+                        print("time {}ms: Recalculated tau ({}ms) for process {} [Q {}]".format(self.time, self.taus[pid], pid, self.output_queue()))
                     io = burst.pop(0)
                     if self.time < 1000:
                         print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms [Q {}]". \
                           format(self.time, pid, self.time+self.ctx_time+io.time, self.output_queue()))
                     io.time += self.ctx_time
                     self.io.append(io)
-                    self.taus[pid] = ceil(self.taus[pid]*(1-self.alpha) + self.current_burst.total_time*self.alpha)
+
 
                 self.current_burst_time = 0
                 self.current_burst = None
@@ -112,12 +115,12 @@ class SRT():
             self.current_burst = process.get_burst()[0]
             self.current_burst_time = 0
             if self.time < 1000:
-                if not self.current_burst.preempted:
-                    print("time {}ms: Process {} started using the CPU for {}ms burst [Q {}]". \
-                          format(self.time, pid, self.current_burst.time, self.output_queue()))
-                else:
-                    print("time {}ms: Process {} started using the CPU with {}ms burst remaining [Q {}]". \
-                          format(self.time, pid, self.current_burst.time, self.output_queue()))
+                # if not self.current_burst.preempted:
+                #     print("time {}ms: Process {} (tau {}ms) started using the CPU for {}ms burst [Q {}]". \
+                #           format(self.time, pid, self.taus[pid], self.current_burst.time, self.output_queue()))
+                # else:
+                print("time {}ms: Process {} (tau {}ms) started using the CPU with {}ms burst remaining [Q {}]". \
+                          format(self.time, pid, self.taus[pid], self.current_burst.time, self.output_queue()))
 
     def io_completion(self):
         finished_pid = []
@@ -135,8 +138,8 @@ class SRT():
             self.queue.append(pid)
             self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
             if self.time < 1000:
-                print("time {}ms: Process {} completed I/O; placed on ready queue [Q {}]". \
-                  format(self.time, pid, self.output_queue()))
+                print("time {}ms: Process {} (tau {}ms) completed I/O; placed on ready queue [Q {}]". \
+                  format(self.time, pid, self.taus[pid], self.output_queue()))
 
     def new_arrival(self):
         for pid in self.processes:
@@ -146,8 +149,8 @@ class SRT():
                 self.queue.append(pid)
                 self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
                 if self.time < 1000:
-                    print("time {}ms: Process {} arrived; placed on ready queue [Q {}]". \
-                      format(self.time, pid, self.output_queue()))
+                    print("time {}ms: Process {} (tau {}ms) arrived; placed on ready queue [Q {}]". \
+                      format(self.time, pid, self.taus[pid], self.output_queue()))
 
     def decrease_io(self):
         for io in self.io:
