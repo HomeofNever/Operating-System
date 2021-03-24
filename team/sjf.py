@@ -3,182 +3,161 @@ from fprocess import FProcess
 from math import ceil
 
 class SJF():
-    def __init__(self, processes, ctx_time, alpha, lam):
+    def __init__(self, processes, ctx_time, alpha, lamb):
         self.processes = processes
         self.taus = {}
         for key in self.processes:
             self.processes[key] = FProcess.get_fprocess(self.processes[key])
-            self.taus[key] = ceil(1/lam)
-        for j, i in processes.items():
-            print(i.get_summary()+' (tau {}ms)'.format(self.taus[j]))
+            self.taus[key] = ceil(1/lamb)
         self.ended_processes = []
         self.ctx_time = ctx_time // 2
+        self.alpha = alpha
         self.queue = []
         self.time = 0  # Total simulation time
-        self.current_process = None
         self.current_burst = None
         self.current_burst_time = 0
         self.cpu_time = 0  # total burst time
         self.context_switch = 0
         self.preemption = 0
+        self.switching = self.ctx_time
         self.io = []
 
-        self.alpha = alpha
-        return
+        for j, i in processes.items():
+            print(i.get_summary()+' (tau {}ms)'.format(self.taus[j]))
 
-    def getQueueStr(self):
+    def output_queue(self):
         if len(self.queue) == 0:
             return "<empty>"
-        else:
-            return " ".join(self.queue)
+        seq = filter(lambda pid: not self.processes[pid].switching, self.queue)
+        return ' '.join(seq)
 
-    ''' Get next tasks, sorted '''
+    def burst_completion(self):
+        if self.current_burst != None:
+            # Case where switch out
+            if self.current_burst.time == 0:
+                current_process = self.current_burst.pid
+                self.switching = self.ctx_time * 2
+                # Pop this CPU burst
+                burst = self.processes[current_process].get_burst()
+                pid = burst.pop(0).pid
+                num_remaining_burst = len(burst) // 2
+                # If this process have no further burst, terminate it
+                if num_remaining_burst == 0:
+                    print("time {}ms: Process {} terminated [Q {}]". \
+                          format(self.time, pid, self.output_queue()))
+                    self.ended_processes.append(self.processes[pid])
+                    self.processes.pop(pid)
+                else: # we have io to do
+                    print("time {}ms: Process {} completed a CPU burst; {} {} to go [Q {}]". \
+                          format(self.time, pid, num_remaining_burst, ["bursts","burst"][num_remaining_burst==1], self.output_queue()))
+                    io = burst.pop(0)
+                    print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms [Q {}]". \
+                          format(self.time, pid, self.time+self.ctx_time+io.time, self.output_queue()))
+                    io.time += self.ctx_time
+                    self.io.append(io)
+                    self.taus[pid] = ceil(self.taus[pid]*(1-self.alpha) + self.current_burst.total_time*self.alpha)
 
-    def findNextTasks(self):
-        ntasks = []
-        for process in self.processes.values():
-            ntasks.append(process.peak())
-
-        if len(ntasks) == 0:
-            return ntasks
-
-        if self.current_process != None:
-            # Remove all other CPU burst for now: they will have to wait
-            ntasks = [i for i in ntasks if i.pid ==
-                      self.current_process or i.my_type() != Status.CPU]
-
-        maxTime = ntasks[0].time
-        for i in ntasks:
-            if i.time < maxTime:
-                maxTime = i.time
-
-        ntasks = [i for i in ntasks if i.time <= maxTime]
-        ntasks.sort()
-        # print("MaxTime" + str(maxTime) + ' '.join(str(x) for x in ntasks))
-
-        return ntasks
-
-    def cpu_handler(self, current_cpu):
-        # Currently in progress
-        ntype = current_cpu.my_type()
-        npid = current_cpu.pid
-        ntime = current_cpu.time
-        if ntype == Status.CTX_SWITCH:
-            next_task = self.processes[npid].peak(1)
-            if next_task != None and next_task.my_type() == Status.CPU:
-                # Join the CPU
-                self.time += ntime
-                self.processes[npid].dec_first_time(ntime)
-                next_cpu_time = self.processes[npid].peak().time
-                print("time {:.0f}ms: Process {} started using the CPU for {:.0f}ms burst [Q {}]".format(
-                    self.time, npid, next_cpu_time, self.getQueueStr()))
-                self.processes[npid].in_cpu = True
-                # ctx only count once, as here we have divided into two parts
-                self.context_switch += 1
+                self.current_burst_time = 0
+                self.current_burst = None
+            # Case where preemption occurs
+            # if self.current_burst_time == self.time_slice:
+            #     # Case that queue is empty, so no preemption
+            #     if len(self.queue) == 0:
+            #         print("time {}ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]". \
+            #               format(self.time))
+            #         self.current_burst_time = 0
+            #     else:
+            #         self.preemption += 1
+            #         self.current_burst.preempted = True
+            #         pid = self.current_burst.pid
+            #         print("time {}ms: Time slice expired; process {} preempted with {}ms to go [Q {}]". \
+            #               format(self.time, pid, self.current_burst.time, self.output_queue()))
+            #         if self.behavior == Status.RR_END:
+            #             self.queue.append(self.current_burst.pid)
+            #         else:
+            #             self.queue.insert(1, self.current_burst.pid)
+            #         self.processes[self.current_burst.pid].wait_time -= self.ctx_time
+            #         self.current_burst = None
+            #         self.current_burst_time = 0
+            #         self.switching = self.ctx_time * 2
+        elif self.switching == 0 and len(self.queue) > 0: # Case we can perform a new CPU burst
+            pid = self.queue.pop(0)
+            process = self.processes[pid]
+            process.switching = False
+            self.context_switch += 1
+            self.current_burst = process.get_burst()[0]
+            self.current_burst_time = 0
+            if not self.current_burst.preempted:
+                print("time {}ms: Process {} started using the CPU for {}ms burst [Q {}]". \
+                      format(self.time, pid, self.current_burst.time, self.output_queue()))
             else:
-                # Leaving the CPU
-                self.processes[npid].dec_first_time(ntime)
-                self.processes[npid].in_cpu = False
-                self.current_process = None
-                # Here we need to end the process, if this is it's last switch
-                if self.processes[npid].peak() is None:
-                    ### Termination Point ###
-                    print("time {:.0f}ms: Process {} terminated [Q {}]".format(
-                        self.time, npid, self.getQueueStr()))
-                    self.processes[npid].time = self.time
-                    self.ended_processes.append(self.processes[npid])
-                    del self.processes[npid]
-                # Now, record the time
-                self.time += ntime
-        # Active CPU time
-        elif ntype == Status.CPU:
-            self.time += ntime
-            self.cpu_time += ntime
-            last_burst_time = self.processes[npid].burst[0].total_time
-            self.processes[npid].dec_first_time(ntime)
-            remain_burst = self.processes[npid].get_remain_burst()
-            if remain_burst > 0:
-                print("time {:.0f}ms: Process {} completed a CPU burst; {} burst{} to go [Q {}]".format(
-                    self.time, npid, remain_burst,
-                    '' if remain_burst == 1 else 's', self.getQueueStr()))
-                self.taus[npid] = ceil(self.taus[npid]*(1-self.alpha) + last_burst_time*self.alpha)
-                print("time {:.0f}ms: Recalculated tau ({}ms) for process {} [Q {}]".format(
-                    self.time, self.taus[npid], npid, self.getQueueStr()))
-                io = self.processes[npid].peak()
-                # Try if there is a IO followed, if nothing, it will switch out and terminate
-                if io:
-                    print("time {:.0f}ms: Process {} switching out of CPU; will block on I/O until time {:.0f}ms [Q {}]".format(
-                        self.time, npid, self.time + self.ctx_time + io.time, self.getQueueStr()))
-            self.processes[npid].set_prepend(
-                ContextSwitch(self.ctx_time, npid))
+                print("time {}ms: Process {} started using the CPU with {}ms burst remaining [Q {}]". \
+                      format(self.time, pid, self.current_burst.time, self.output_queue()))
 
-    '''
-        So our process is: 
-        1) find the first arrival time/task time
-        2) If it complete, search for the next one
-        
-        During the process:
-        1) need to re-added task to the queue: IO may have finished
-        2) remove processes when they have finished
-    '''
+    def io_completion(self):
+        finished_pid = []
+        index = 0
+        while index < len(self.io):
+            io = self.io[index]
+            if io.time == 0:
+                self.io.pop(index)
+                pid = io.pid
+                finished_pid.append(pid)
+            else:
+                index += 1
+        finished_pid.sort()
+        for pid in finished_pid:
+            self.queue.append(pid)
+            self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
+            print("time {}ms: Process {} completed I/O; placed on ready queue [Q {}]". \
+                  format(self.time, pid, self.output_queue()))
+
+    def new_arrival(self):
+        for pid in self.processes:
+            process = self.processes[pid]
+            arr_time = process.get_arr_time()
+            if arr_time == self.time:
+                self.queue.append(pid)
+                self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
+                print("time {}ms: Process {} arrived; placed on ready queue [Q {}]". \
+                      format(self.time, pid, self.output_queue()))
+
+    def decrease_io(self):
+        for io in self.io:
+            io.time -= 1
+
+    def increase_queue(self):
+        if len(self.queue) == 0:
+            return
+        for pid in self.queue:
+            if not self.processes[pid].switching:
+                self.processes[pid].wait_time += 1
 
     def run(self):
+        # Start our simulation :)
         print("time 0ms: Simulator started for SJF [Q <empty>]")
         while len(self.processes) != 0:
-            current_cpu = self.processes[self.current_process].peak(
-            ) if self.current_process != None else None
-            # Add CPU task if possible
-            if current_cpu == None and len(self.queue) > 0:
-                # Find a task to fill in, could be none
-                self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
-                task = self.processes[self.queue[0]].peak()
-                npid = task.pid
-                # Filling Task into CPU
-                self.processes[npid].set_prepend(
-                    ContextSwitch(self.ctx_time, npid))
-                self.current_process = npid
-                self.queue.pop(0)
+            self.burst_completion()
+            self.io_completion()
+            self.new_arrival()
 
-            affected_pids = []
-            ntasks = self.findNextTasks()
-            ntime = ntasks[0].time
-            # print(' '.join(str(x) for x in ntasks))
-            # print("advance: {}".format(ntime))
-            # As there could be only one CPU/CTX running at a time, add time only when there is a CPU
-            cpu_task = [c for c in ntasks if c.my_type(
-            ) == Status.CPU or c.my_type() == Status.CTX_SWITCH]
-            for task in cpu_task:
-                if task.pid == self.current_process:
-                    self.cpu_handler(task)
-                    affected_pids.append(task.pid)
-            # Advance time if cpu_handler is not running
-            if len(affected_pids) == 0:
-                self.time += ntime
+            self.time += 1
+            if self.current_burst != None:
+                self.current_burst_time += 1
+                self.current_burst.time -= 1
+            elif len(self.queue) > 0:
+                self.switching -= 1
+                if self.switching < self.ctx_time:
+                    self.processes[self.queue[0]].switching = True
+            elif self.switching > self.ctx_time:
+                self.switching -= 1
 
-            for task in ntasks:
-                npid = task.pid
-                ntype = task.my_type()
-                if npid not in affected_pids:
-                    affected_pids.append(npid)
-                    # Always decreasing
-                    if ntype == Status.IO:
-                        self.queue.append(npid)
-                        self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
-                        print("time {:.0f}ms: Process {} completed I/O; placed on ready queue [Q {}]".format(
-                            self.time, npid, self.getQueueStr()))
-                    elif ntype == Status.ARRIVING:
-                        self.queue.append(npid)
-                        self.queue.sort(key=lambda tmp: (self.taus[tmp], tmp))
-                        print("time {:.0f}ms: Process {} arrived; placed on ready queue [Q {}]".format(
-                            self.time, npid, self.getQueueStr()))
-                    self.processes[npid].dec_first_time(ntime)
+            self.decrease_io()
+            self.increase_queue()
 
-            for pid, process in self.processes.items():
-                if pid not in affected_pids:
-                    process.dec_wait_time(ntime)
-
-        print(
-            "time {:.0f}ms: Simulator ended for SJF [Q <empty>]".format(self.time))
+        # End of our simulation :)
+        self.time = self.time-1+self.ctx_time
+        print("time {}ms: Simulator ended for SJF [Q <empty>]".format(self.time))
 
         total_burst_time = 0
         total_wait_time = 0
@@ -193,4 +172,6 @@ class SJF():
                 total_wait_time / total_burst,
                 (total_burst_time + self.context_switch * self.ctx_time * 2 + total_wait_time) / total_burst,
                 self.context_switch,
+                self.preemption,
                 total_burst_time / self.time * 100)
+

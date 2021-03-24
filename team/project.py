@@ -7,6 +7,7 @@ from copy import deepcopy
 from fcfs import FCFS
 from rr import RR
 from sjf import SJF
+from srt import SRT
 
 output_template = """Algorithm {}
 -- average CPU burst time: {:.3f} ms
@@ -123,9 +124,10 @@ if __name__ == "__main__":
         #     cpu_utilization
         # ))
 
-        # ### SJF
-        fcfs_algo = SJF(deepcopy(processes), ctx_time, alpha, lamb)
-        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, cpu_utilization = fcfs_algo.run()
+        ### SJF
+        print()
+        sjf_algo = SJF(deepcopy(processes), ctx_time, alpha, lamb)
+        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, _, cpu_utilization = sjf_algo.run()
         out_file.write(output_template.format(
             "SJF",
             avg_cpu_burst,
@@ -140,15 +142,18 @@ if __name__ == "__main__":
         # print_processes()
         # # @TODO run algo
 
-        # out_file.write(output_template.format(
-        #     "SRT",
-        #     0,
-        #     0,
-        #     0,
-        #     0,
-        #     0,
-        #     0
-        # ))
+        print()
+        srt_algo = SRT(deepcopy(processes), ctx_time, alpha, lamb)
+        avg_cpu_burst, avg_wait, avg_turnaround, num_context_switch, num_preemption, cpu_utilization = srt_algo.run()
+        out_file.write(output_template.format(
+            "SRT",
+            avg_cpu_burst,
+            avg_wait,
+            avg_turnaround,
+            num_context_switch,
+            num_preemption,
+            cpu_utilization
+        ))
 
         ## RR
         # print()
@@ -166,8 +171,8 @@ if __name__ == "__main__":
         # ))
     
     # Remove this statement when finished @TODO
-    # This line is to ensure we have ended :)
-    print("Debug: done")
+    # This line is to ensure we have ended :) No way!
+
 
     
 
