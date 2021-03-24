@@ -38,16 +38,19 @@ class RR():
                 num_remaining_burst = len(burst) // 2
                 # If this process have no further burst, terminate it
                 if num_remaining_burst == 0:
-                    print("time {}ms: Process {} terminated [Q {}]".\
-                        format(self.time, pid, self.output_queue()))
+                    if self.time <= 999:
+                        print("time {}ms: Process {} terminated [Q {}]".\
+                            format(self.time, pid, self.output_queue()))
                     self.ended_processes.append(self.processes[pid])
                     self.processes.pop(pid)
                 else: # we have io to do
-                    print("time {}ms: Process {} completed a CPU burst; {} {} to go [Q {}]".\
-                        format(self.time, pid, num_remaining_burst, ["bursts","burst"][num_remaining_burst==1], self.output_queue()))
+                    if self.time <= 999:
+                        print("time {}ms: Process {} completed a CPU burst; {} {} to go [Q {}]".\
+                            format(self.time, pid, num_remaining_burst, ["bursts","burst"][num_remaining_burst==1], self.output_queue()))
                     io = burst.pop(0)
-                    print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms [Q {}]".\
-                        format(self.time, pid, self.time+self.ctx_time+io.time, self.output_queue()))
+                    if self.time <= 999:
+                        print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms [Q {}]".\
+                            format(self.time, pid, self.time+self.ctx_time+io.time, self.output_queue()))
                     io.time += self.ctx_time
                     self.io.append(io)
                 self.current_burst_time = 0
@@ -56,15 +59,17 @@ class RR():
             if self.current_burst_time == self.time_slice:
                 # Case that queue is empty, so no preemption
                 if len(self.queue) == 0:
-                    print("time {}ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]".\
-                        format(self.time))
+                    if self.time <= 999:
+                        print("time {}ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]".\
+                            format(self.time))
                     self.current_burst_time = 0
                 else:
                     self.preemption += 1
                     self.current_burst.preempted = True
                     pid = self.current_burst.pid
-                    print("time {}ms: Time slice expired; process {} preempted with {}ms to go [Q {}]".\
-                        format(self.time, pid, self.current_burst.time, self.output_queue()))
+                    if self.time <= 999:
+                        print("time {}ms: Time slice expired; process {} preempted with {}ms to go [Q {}]".\
+                            format(self.time, pid, self.current_burst.time, self.output_queue()))
                     if self.behavior == Status.RR_END:
                         self.queue.append(self.current_burst.pid)
                     else:
@@ -81,11 +86,13 @@ class RR():
             self.current_burst = process.get_burst()[0]
             self.current_burst_time = 0
             if not self.current_burst.preempted:
-                print("time {}ms: Process {} started using the CPU for {}ms burst [Q {}]".\
-                    format(self.time, pid, self.current_burst.time, self.output_queue()))
+                if self.time <= 999:
+                    print("time {}ms: Process {} started using the CPU for {}ms burst [Q {}]".\
+                        format(self.time, pid, self.current_burst.time, self.output_queue()))
             else:
-                print("time {}ms: Process {} started using the CPU with {}ms burst remaining [Q {}]".\
-                    format(self.time, pid, self.current_burst.time, self.output_queue()))
+                if self.time <= 999:
+                    print("time {}ms: Process {} started using the CPU with {}ms burst remaining [Q {}]".\
+                        format(self.time, pid, self.current_burst.time, self.output_queue()))
 
     def io_completion(self):
         finished_pid = []
@@ -101,7 +108,8 @@ class RR():
         finished_pid.sort()
         for pid in finished_pid:
             self.queue.append(pid)
-            print("time {}ms: Process {} completed I/O; placed on ready queue [Q {}]".\
+            if self.time <= 999:
+                print("time {}ms: Process {} completed I/O; placed on ready queue [Q {}]".\
                     format(self.time, pid, self.output_queue()))
 
     def new_arrival(self):
@@ -110,8 +118,9 @@ class RR():
             arr_time = process.get_arr_time()
             if arr_time == self.time:
                 self.queue.append(pid)
-                print("time {}ms: Process {} arrived; placed on ready queue [Q {}]".\
-                    format(self.time, pid, self.output_queue()))
+                if self.time <= 999:
+                    print("time {}ms: Process {} arrived; placed on ready queue [Q {}]".\
+                        format(self.time, pid, self.output_queue()))
     
     def decrease_io(self):
         for io in self.io:
