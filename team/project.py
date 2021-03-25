@@ -43,9 +43,10 @@ if __name__ == "__main__":
         raise Exception("Error: invalid args")
 
     rr_behavior = Status.RR_END
-    _, num_process, seed, lamb, rand_upper_bound, ctx_time, alpha, rr_time_slice = sys.argv
     if len(sys.argv) == 9:
         rr_behavior = Status.RR_END if sys.argv[8] == 'END' else Status.RR_BEGINNING 
+
+    _, num_process, seed, lamb, rand_upper_bound, ctx_time, alpha, rr_time_slice = sys.argv[:8]
     
     ### Get your parameters here ###
     num_process = min(int(num_process), 26)
