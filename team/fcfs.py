@@ -1,7 +1,9 @@
 from burst import Status, ContextSwitch
 from fprocess import FProcess
 
+# Class definition for FCFS algorithm
 class FCFS():
+    # Initializer
     def __init__(self, processes, ctx_time):
         self.processes = processes
         for key in self.processes:
@@ -14,6 +16,7 @@ class FCFS():
         self.cpu_time = 0  # total burst time
         self.context_switch = 0
 
+    # Used to output easier
     def getQueueStr(self):
         if len(self.queue) == 0:
             return "<empty>"

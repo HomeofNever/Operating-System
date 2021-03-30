@@ -1,7 +1,9 @@
 from burst import Status, ContextSwitch
 from fprocess import FProcess
 
+# Class definition for RR algorithm
 class RR():
+    # Initializer
     def __init__(self, processes, ctx_time, rr_time_slice, rr_behavior):
         self.processes = processes
         for key in self.processes:
@@ -20,12 +22,15 @@ class RR():
         self.switching = self.ctx_time
         self.io = []
 
+    # Used to output easier
     def output_queue(self):
         if len(self.queue) == 0:
             return "<empty>"
         seq = filter(lambda pid: not self.processes[pid].switching, self.queue)
         return ' '.join(seq)
     
+    ''' The following is function for different events '''
+
     def burst_completion(self):
         if self.current_burst != None:
             # Case where switch out
@@ -90,6 +95,7 @@ class RR():
                     print("time {}ms: Process {} started using the CPU with {}ms burst remaining [Q {}]".\
                         format(self.time, pid, self.current_burst.time, self.output_queue()))
 
+    # IO event
     def io_completion(self):
         finished_pid = []
         index = 0
@@ -106,11 +112,12 @@ class RR():
             if self.behavior == Status.RR_END:
                 self.queue.append(pid)
             else:
-                self.queue.insert(1, pid)
+                self.queue.insert(0, pid)
             if self.time <= 999:
                 print("time {}ms: Process {} completed I/O; placed on ready queue [Q {}]".\
                     format(self.time, pid, self.output_queue()))
 
+    # New process coming in
     def new_arrival(self):
         for pid in self.processes:
             process = self.processes[pid]
@@ -119,7 +126,7 @@ class RR():
                 if self.behavior == Status.RR_END:
                     self.queue.append(pid)
                 else:
-                    self.queue.insert(1, pid)
+                    self.queue.insert(0, pid)
                 if self.time <= 999:
                     print("time {}ms: Process {} arrived; placed on ready queue [Q {}]".\
                         format(self.time, pid, self.output_queue()))
@@ -140,6 +147,7 @@ class RR():
         print("time 0ms: Simulator started for RR with time slice {}ms and rr_add to {} [Q <empty>]".\
             format(self.time_slice, ["END", "BEGINNING"][self.behavior == Status.RR_BEGINNING]))
         while len(self.processes) != 0:
+            # Simply simulate every event
             self.burst_completion()
             self.io_completion()
             self.new_arrival()
