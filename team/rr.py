@@ -69,10 +69,6 @@ class RR():
                     if self.time <= 999:
                         print("time {}ms: Time slice expired; process {} preempted with {}ms to go [Q {}]".\
                             format(self.time, pid, self.current_burst.time, self.output_queue()))
-                    if self.behavior == Status.RR_END:
-                        self.queue.append(self.current_burst.pid)
-                    else:
-                        self.queue.insert(1, self.current_burst.pid)
                     self.processes[self.current_burst.pid].wait_time -= self.ctx_time
                     self.current_burst = None
                     self.current_burst_time = 0
@@ -106,7 +102,10 @@ class RR():
                 index += 1
         finished_pid.sort()
         for pid in finished_pid:
-            self.queue.append(pid)
+            if self.behavior == Status.RR_END:
+                self.queue.append(pid)
+            else:
+                self.queue.insert(1, pid)
             if self.time <= 999:
                 print("time {}ms: Process {} completed I/O; placed on ready queue [Q {}]".\
                     format(self.time, pid, self.output_queue()))
@@ -116,7 +115,10 @@ class RR():
             process = self.processes[pid]
             arr_time = process.get_arr_time()
             if arr_time == self.time:
-                self.queue.append(pid)
+                if self.behavior == Status.RR_END:
+                    self.queue.append(pid)
+                else:
+                    self.queue.insert(1, pid)
                 if self.time <= 999:
                     print("time {}ms: Process {} arrived; placed on ready queue [Q {}]".\
                         format(self.time, pid, self.output_queue()))
