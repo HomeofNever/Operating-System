@@ -69,6 +69,7 @@ class RR():
                     if self.time <= 999:
                         print("time {}ms: Time slice expired; process {} preempted with {}ms to go [Q {}]".\
                             format(self.time, pid, self.current_burst.time, self.output_queue()))
+                    self.queue.append(self.current_burst.pid)
                     self.processes[self.current_burst.pid].wait_time -= self.ctx_time
                     self.current_burst = None
                     self.current_burst_time = 0
