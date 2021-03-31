@@ -1,3 +1,4 @@
+# Helper class for recording status
 class Status():
     UNDEF = -1
     EMPTY = 0
@@ -55,6 +56,7 @@ class Task():
             return False
         return self.whoami == other.whoami and self.time == other.time and self.pid == other.pid
 
+''' Subclass for each type of task '''
 
 class CPUBurst(Task):
     def my_type(self):

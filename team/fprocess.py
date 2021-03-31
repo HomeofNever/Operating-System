@@ -1,6 +1,7 @@
 from process import Process
 from burst import Status, Arrival
 
+# Subclass for specifying the behavior of the process
 class FProcess(Process):
     ''' Overwrite Process'''
     def __init__(self, pid, arr_time, cpu_burst, burst):

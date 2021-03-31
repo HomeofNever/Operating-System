@@ -9,6 +9,7 @@ from rr import RR
 from sjf import SJF
 from srt import SRT
 
+# output template for simout*.txt file 
 output_template = """Algorithm {}
 -- average CPU burst time: {:.3f} ms
 -- average wait time: {:.3f} ms
@@ -37,11 +38,13 @@ class Rand48(object):
         # give a number in range [0, 1)
         return self.next() / 2**48
 
-
+# Main function to run this project
 if __name__ == "__main__":
+    # Invalid arguments
     if len(sys.argv) < 8 or len(sys.argv) > 9:
         raise Exception("Error: invalid args")
 
+    # Cases for different rr_add
     rr_behavior = Status.RR_END
     if len(sys.argv) == 9:
         rr_behavior = Status.RR_END if sys.argv[8] == 'END' else Status.RR_BEGINNING 
@@ -170,9 +173,3 @@ if __name__ == "__main__":
             cpu_utilization
         ))
     
-    # Remove this statement when finished @TODO
-    # This line is to ensure we have ended :) No way!
-
-
-    
-

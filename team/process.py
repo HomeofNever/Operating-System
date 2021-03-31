@@ -1,6 +1,8 @@
 from burst import Status, Arrival
 
+# Class definition for each process
 class Process():
+    # Initializer
     def __init__(self, pid, arr_time, cpu_burst, burst):
         self.basic_info = {
             'pid': pid,
@@ -11,6 +13,8 @@ class Process():
 
         # Note for RR: you may inherient this class if you found
         # more attributes or behavior needed to be override.
+    
+    ''' The following is getter function '''
 
     def get_pid(self):
         return self.basic_info['pid']

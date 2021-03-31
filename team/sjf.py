@@ -2,7 +2,9 @@ from burst import Status, ContextSwitch
 from fprocess import FProcess
 from math import ceil
 
+# Class definition for SJF algorithm
 class SJF():
+    # Initializer
     def __init__(self, processes, ctx_time, alpha, lamb):
         self.processes = processes
         self.taus = {}
@@ -25,11 +27,14 @@ class SJF():
         for j, i in processes.items():
             print(i.get_summary()+' (tau {}ms)'.format(self.taus[j]))
 
+    # Used to output easier
     def output_queue(self):
         if len(self.queue) == 0:
             return "<empty>"
         seq = filter(lambda pid: not self.processes[pid].switching, self.queue)
         return ' '.join(seq)
+
+    ''' The following is function for different events '''
 
     def burst_completion(self):
         if self.current_burst != None:
@@ -101,6 +106,7 @@ class SJF():
                     print("time {}ms: Process {} (tau {}ms) started using the CPU with {}ms burst remaining [Q {}]". \
                           format(self.time, pid, self.taus[pid], self.current_burst.time, self.output_queue()))
 
+    # IO event
     def io_completion(self):
         finished_pid = []
         index = 0
@@ -120,6 +126,7 @@ class SJF():
                 print("time {}ms: Process {} (tau {}ms) completed I/O; placed on ready queue [Q {}]". \
                   format(self.time, pid, self.taus[pid], self.output_queue()))
 
+    # New process coming in
     def new_arrival(self):
         for pid in self.processes:
             process = self.processes[pid]
