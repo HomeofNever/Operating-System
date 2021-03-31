@@ -287,7 +287,7 @@ void * worker(void *mp) {
             updateSquareCount(p->current_step);
         } else {
             printf("THREAD %d: Dead end after move #%d\n", p->thread_id, p->current_step);
-            // Write Board
+            // Write Dead Board
             writeDeadMap(p);
         }
         struct joinPack * jp = calloc(1, sizeof(struct joinPack));
@@ -347,7 +347,7 @@ int simulate(int argc, char *argv[]) {
     // Summary
     int all = m * n;
     if (max_squares == all) {
-        printf("MAIN: All threads joined; full knight's tour of 12 achieved\n");
+        printf("MAIN: All threads joined; full knight's tour of %d achieved\n", all);
     } else {
         printf("MAIN: All threads joined; best solution(s) visited %d squares out of %d\n", max_squares, all);
         printf("MAIN: Dead end boards covering at least %d squares are:", min);
