@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 #include <unistd.h>
-#include <errno.h>
-#include <time.h>
 #include <pthread.h>
 
 extern int next_thread_id;
@@ -20,18 +17,17 @@ int num_of_alloc_dead_boards = 8;
 int num_of_dead_boards = 0;
 
 // Map info
-int m = 0;
-int n = 0;
+int m = 0; // row
+int n = 0; // col
+int full_step = 0; // m * n
 // Display at least min squares covered
 int min = 0;
 
 // CONST
 char EMPTY_CELL = '.';
 char PASSED_CELL = 'S';
-enum THREAD_TYPE {
-    MAIN, THREAD
-};
 
+// Pass states to next thread/self
 struct pack {
     char **map;
     int current_step;
@@ -40,6 +36,7 @@ struct pack {
     int thread_id;
 };
 
+// Return/join value
 struct joinPack {
     int thread_id;
     int current_step;
@@ -53,6 +50,11 @@ int error() {
     return EXIT_FAILURE;
 }
 
+/**
+ * Copy given map and return the pointer
+ * @param map map to copy
+ * @return a new allocated map
+ */
 char **copyMap(char **map) {
     char **new_map = calloc(m, sizeof(char *));
     for (int i = 0; i < m; i++) {
@@ -65,6 +67,12 @@ char **copyMap(char **map) {
     return new_map;
 }
 
+/**
+ * Update max square
+ * will identify if an update required
+ * thread-safe
+ * @param s square count
+ */
 void updateSquareCount(int s) {
     pthread_mutex_lock(&max_squares_mutex);
     if (s > max_squares) {
@@ -73,9 +81,14 @@ void updateSquareCount(int s) {
     pthread_mutex_unlock(&max_squares_mutex);
 }
 
+/**
+ * Write an dead map
+ * will identify if map need to be written
+ * @param p pack step info
+ */
 void writeDeadMap(struct pack *p) {
-    pthread_mutex_lock(&dead_end_mutex);
     if (p->current_step >= min) {
+        pthread_mutex_lock(&dead_end_mutex);
         if (num_of_dead_boards >= num_of_alloc_dead_boards) {
             // Need to reallocate and copy
             int next = num_of_alloc_dead_boards * 2;
@@ -85,12 +98,17 @@ void writeDeadMap(struct pack *p) {
 
         *(dead_end_boards + num_of_dead_boards) = copyMap(p->map);
         num_of_dead_boards++;
+        pthread_mutex_unlock(&dead_end_mutex);
     }
-    pthread_mutex_unlock(&dead_end_mutex);
 
     updateSquareCount(p->current_step);
 }
 
+/**
+ * Get next thread id to allocate
+ * thread safe
+ * @return int next id to use
+ */
 int getNextThreadId() {
     pthread_mutex_lock(&next_thread_mutex);
     int thread_id = next_thread_id;
@@ -99,6 +117,10 @@ int getNextThreadId() {
     return thread_id;
 }
 
+/**
+ * Free a given map
+ * @param map map pointer to free
+ */
 void freeMap(char **map) {
     for (int i = 0; i < m; i++) {
         free(*(map + i));
@@ -106,6 +128,11 @@ void freeMap(char **map) {
     free(map);
 }
 
+/**
+ * Free an immediate calculated step pointer
+ * by nextStep()
+ * @param steps
+ */
 void freeStep(int **steps) {
     for (int i = 0; i < 8; i++) {
         free(*(steps + i));
@@ -113,6 +140,13 @@ void freeStep(int **steps) {
     free(steps);
 }
 
+/**
+ * Identify if given block is okay to go
+ * @param x row
+ * @param y col
+ * @param map map to test
+ * @return 1 if not passed, 0 otherwise
+ */
 int isValidBlock(int x, int y, char **map) {
     if (x < 0 || y < 0) {
         return 0;
@@ -128,6 +162,14 @@ int isValidBlock(int x, int y, char **map) {
     return 1;
 }
 
+/**
+ * Immediate function with next step
+ * @param x row
+ * @param y col
+ * @param map map to test
+ * @param count num of step, indicator of steps
+ * @param steps step info
+ */
 void addStep(int x, int y, char **map, int *count, int **steps) {
     if (isValidBlock(x, y, map)) {
         **(steps + *count) = x;
@@ -136,6 +178,12 @@ void addStep(int x, int y, char **map, int *count, int **steps) {
     }
 }
 
+/**
+ * Calculate possibly next step
+ * @param p step info to calculate
+ * @param count number of possible step
+ * @param steps [[x, y], ...] next step location
+ */
 void nextStep(struct pack *p, int *count, int **steps) {
     // Always allocate 8 directions with 2 coordinates
     // but we may not be able to use them all
@@ -160,9 +208,13 @@ void nextStep(struct pack *p, int *count, int **steps) {
     addStep(x + 1, y - 2, map, count, steps);
     // left 2 up 1
     addStep(x - 1, y - 2, map, count, steps);
-
 }
 
+/**
+ * Print a given map
+ * should always for main thread
+ * @param map map to print
+ */
 void printBoard(char **map) {
     for (int i = 0; i < m; i++) {
         printf("MAIN: ");
@@ -184,28 +236,15 @@ void printBoard(char **map) {
     }
 }
 
-int isFullTour(char **map) {
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            if (*(*(map + i) + j) == EMPTY_CELL) {
-                return 0;
-            }
-        }
-    }
-
-    return 1;
-}
-
 void *worker(void *mp) {
     struct pack *p = (struct pack *) mp;
 
     // mark current step
     *(*(p->map + p->x) + p->y) = PASSED_CELL;
 
-    // calculate step
-    int **steps;
+    // allocate and calculate step
+    int **steps = calloc(8, sizeof(int *));
     int count = 0;
-    steps = calloc(8, sizeof(int *));
     for (int i = 0; i < 8; i++) {
         *(steps + i) = calloc(2, sizeof(int));
     }
@@ -273,7 +312,7 @@ void *worker(void *mp) {
         free(tid);
         freeStep(steps);
         freeMap(p->map);
-        return jp;
+        return jp; // The same as pthread_exit(jp)
     } else if (count == 1) {
         // Single solution, so we don't dispatch and keep going!
         struct pack pp = {p->map, p->current_step + 1, **steps, *(*steps + 1), p->thread_id};
@@ -282,7 +321,7 @@ void *worker(void *mp) {
         // reuse the map
     } else {
         // Dead end or... we find the tour?
-        if (isFullTour(p->map)) {
+        if (p->current_step == full_step) {
             printf("THREAD %d: Sonny found a full knight's tour\n", p->thread_id);
             updateSquareCount(p->current_step);
         } else {
@@ -304,7 +343,6 @@ void *worker(void *mp) {
 }
 
 /**
- * ERROR: Invalid argument(s)
  * USAGE: a.out <m> <n> <r> <c> <x>
  **/
 int simulate(int argc, char *argv[]) {
@@ -330,6 +368,7 @@ int simulate(int argc, char *argv[]) {
         return error();
 
     // init map
+    full_step = m * n;
     char **map = calloc(m, sizeof(char *));
     for (int i = 0; i < m; i++) {
         *(map + i) = calloc(n, sizeof(char));
@@ -340,19 +379,19 @@ int simulate(int argc, char *argv[]) {
 
     printf("MAIN: Solving Sonny's knight's tour problem for a %dx%d board\n", m, n);
     printf("MAIN: Sonny starts at row %d and column %d\n", r, c);
-    struct pack init = {map, 1, r, c, -1}; // -1 for identify main thread
+    struct pack init = {map, 1, r, c, -1}; // -1 to identify main thread
 
 
     struct joinPack *j = worker(&init);
     free(j);
+    // map will always freed by the worker
 
     // Summary
-    int all = m * n;
-    if (max_squares == all) {
-        printf("MAIN: All threads joined; full knight's tour of %d achieved\n", all);
+    if (max_squares == full_step) {
+        printf("MAIN: All threads joined; full knight's tour of %d achieved\n", full_step);
     } else {
         printf("MAIN: All threads joined; best solution(s) visited %d square%sout of %d\n", max_squares,
-               max_squares == 1 ? " " : "s ", all);
+               max_squares == 1 ? " " : "s ", full_step);
         printf("MAIN: Dead end board%scovering at least %d square%s%s:\n",
                num_of_dead_boards == 1 ? " " : "s ", min,
                min == 1 ? " " : "s ",
