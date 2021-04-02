@@ -53,7 +53,7 @@ int error() {
     return EXIT_FAILURE;
 }
 
-char ** copyMap(char ** map) {
+char **copyMap(char **map) {
     char **new_map = calloc(m, sizeof(char *));
     for (int i = 0; i < m; i++) {
         *(new_map + i) = calloc(n, sizeof(char));
@@ -75,7 +75,7 @@ void updateSquareCount(int s) {
 
 void writeDeadMap(struct pack *p) {
     pthread_mutex_lock(&dead_end_mutex);
-    if (p->current_step > min) {
+    if (p->current_step >= min) {
         if (num_of_dead_boards >= num_of_alloc_dead_boards) {
             // Need to reallocate and copy
             int next = num_of_alloc_dead_boards * 2;
@@ -196,7 +196,7 @@ int isFullTour(char **map) {
     return 1;
 }
 
-void * worker(void *mp) {
+void *worker(void *mp) {
     struct pack *p = (struct pack *) mp;
 
     // mark current step
@@ -213,7 +213,7 @@ void * worker(void *mp) {
 
     if (count > 1) {
         // We need children, pack info and send!
-        if (p->current_step == 1) {
+        if (p->thread_id == -1) {
             // This is dispatch from Main thread, considered as Main
             printf("MAIN: %d possible moves after move #%d; creating %d child threads...\n", count, p->current_step,
                    count);
@@ -222,11 +222,11 @@ void * worker(void *mp) {
                    count, p->current_step, count);
         }
 
-        pthread_t * tid = calloc(count, sizeof(pthread_t));
-        struct pack * pp = calloc(count, sizeof(struct pack));
+        pthread_t *tid = calloc(count, sizeof(pthread_t));
+        struct pack *pp = calloc(count, sizeof(struct pack));
         // Summary from children
         int max_step = 0;
-        struct joinPack * joinPack;
+        struct joinPack *joinPack;
 
         // Starting Children
         for (int i = 0; i < count; i++) {
@@ -241,7 +241,7 @@ void * worker(void *mp) {
             if (max_step < joinPack->current_step) {
                 max_step = joinPack->current_step;
             }
-            if (p->current_step == 1) {
+            if (p->thread_id == -1) {
                 printf("MAIN: Thread %d joined (returned %d)\n", joinPack->thread_id,
                        joinPack->current_step);
             } else {
@@ -256,7 +256,7 @@ void * worker(void *mp) {
             pthread_join(*(tid + i), (void *) &joinPack);
             if (max_step < joinPack->current_step)
                 max_step = joinPack->current_step;
-            if (p->current_step == 1) {
+            if (p->thread_id == -1) {
                 printf("MAIN: Thread %d joined (returned %d)\n", joinPack->thread_id,
                        joinPack->current_step);
             } else {
@@ -267,7 +267,7 @@ void * worker(void *mp) {
         }
 #endif
         free(pp);
-        struct joinPack * jp = calloc(1, sizeof(struct joinPack));
+        struct joinPack *jp = calloc(1, sizeof(struct joinPack));
         jp->thread_id = p->thread_id;
         jp->current_step = max_step;
         free(tid);
@@ -281,16 +281,20 @@ void * worker(void *mp) {
         return worker(&pp);
         // reuse the map
     } else {
-        // Dead end or... we find the trip?
+        // Dead end or... we find the tour?
         if (isFullTour(p->map)) {
             printf("THREAD %d: Sonny found a full knight's tour\n", p->thread_id);
             updateSquareCount(p->current_step);
         } else {
-            printf("THREAD %d: Dead end after move #%d\n", p->thread_id, p->current_step);
+            if (p->thread_id == -1) {
+                printf("MAIN: Dead end at move #%d\n", p->current_step);
+            } else {
+                printf("THREAD %d: Dead end at move #%d\n", p->thread_id, p->current_step);
+            }
             // Write Dead Board
             writeDeadMap(p);
         }
-        struct joinPack * jp = calloc(1, sizeof(struct joinPack));
+        struct joinPack *jp = calloc(1, sizeof(struct joinPack));
         jp->thread_id = p->thread_id;
         jp->current_step = p->current_step;
         freeStep(steps);
@@ -317,7 +321,7 @@ int simulate(int argc, char *argv[]) {
     // Initial Location
     int r = atoi(*(argv + 3));
     int c = atoi(*(argv + 4));
-    if (r > m || c > n || r < 0 || c < 0)
+    if (r >= m || c >= n || r < 0 || c < 0)
         return error();
 
     // Print Size for dead end
@@ -336,12 +340,10 @@ int simulate(int argc, char *argv[]) {
 
     printf("MAIN: Solving Sonny's knight's tour problem for a %dx%d board\n", m, n);
     printf("MAIN: Sonny starts at row %d and column %d\n", r, c);
-    struct pack init = {map, 1, r, c, next_thread_id};
+    struct pack init = {map, 1, r, c, -1}; // -1 for identify main thread
 
-    pthread_t tid;
-    pthread_create(&tid, NULL, worker, &init);
-    struct joinPack *j;
-    pthread_join(tid, (void *) &j);
+
+    struct joinPack *j = worker(&init);
     free(j);
 
     // Summary
@@ -349,17 +351,25 @@ int simulate(int argc, char *argv[]) {
     if (max_squares == all) {
         printf("MAIN: All threads joined; full knight's tour of %d achieved\n", all);
     } else {
-        printf("MAIN: All threads joined; best solution(s) visited %d squares out of %d\n", max_squares, all);
-        printf("MAIN: Dead end boards covering at least %d squares are:", min);
+        printf("MAIN: All threads joined; best solution(s) visited %d square%sout of %d\n", max_squares,
+               max_squares == 1 ? " " : "s ", all);
+        printf("MAIN: Dead end board%scovering at least %d square%s%s:\n",
+               num_of_dead_boards == 1 ? " " : "s ", min,
+               min == 1 ? " " : "s ",
+               num_of_dead_boards == 1 ? "is" : "are");
         for (int i = 0; i < num_of_dead_boards; i++) {
             printBoard(dead_end_boards[i]);
         }
     }
 
+    // Submitty check: do not free when submit, for local check please do
+#ifdef LOCAL_MACHINE
     for (int i = 0; i < num_of_dead_boards; i++) {
         freeMap(dead_end_boards[i]);
     }
     free(dead_end_boards);
+#endif
+
     return EXIT_SUCCESS;
 }
 
