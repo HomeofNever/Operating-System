@@ -53,7 +53,7 @@ int error() {
 /**
  * Copy given map and return the pointer
  * @param map map to copy
- * @return a new allocated map
+ * @return a new allocated map pointer
  */
 char **copyMap(char **map) {
     char **new_map = calloc(m, sizeof(char *));
@@ -69,7 +69,7 @@ char **copyMap(char **map) {
 
 /**
  * Update max square
- * will identify if an update required
+ * will identify if an update is required
  * thread-safe
  * @param s square count
  */
@@ -322,7 +322,7 @@ void *worker(void *mp) {
     } else {
         // Dead end or... we find the tour?
         if (p->current_step == full_step) {
-            printf("THREAD %d: Sonny found a full knight's tour\n", p->thread_id);
+            printf("THREAD %d: Sonny found a full knight's tour!\n", p->thread_id);
             updateSquareCount(p->current_step);
         } else {
             if (p->thread_id == -1) {
@@ -384,7 +384,7 @@ int simulate(int argc, char *argv[]) {
 
     struct joinPack *j = worker(&init);
     free(j);
-    // map will always freed by the worker
+    // map will always be freed by the worker
 
     // Summary
     if (max_squares == full_step) {
