@@ -14,8 +14,8 @@
 #define MAXBUFFER 8192
 
 int error() {
-    fprintf(stderr, "ERROR: Invalid argument(s)\nUSAGE: a.out <server-hostname> <server-port> <n> <int-value-1> ... <int-value-n>")
-    return EXIT_FAILURE
+    fprintf(stderr, "ERROR: Invalid argument(s)\nUSAGE: a.out <server-hostname> <server-port> <n> <int-value-1> ... <int-value-n>");
+    return EXIT_FAILURE;
 }
 
 int main( int argc, char * argv[] )
@@ -27,7 +27,7 @@ int main( int argc, char * argv[] )
   char * hostname = argv[1];
   int inport = atoi(argv[2]);
   
-  if (inport <= 0 || port > 65535) {
+  if (inport <= 0 || inport > 65535) {
       return error(); 
   }
 
@@ -78,11 +78,11 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  printf("CLIENT: Connected to %s (port %d)\n", hostname, inport);
+  printf("CLIENT: Connected to server\n");
 
   /* The implementation of the application protocol is below... */
   printf("CLIENT: Sending %d integer value%s\n", int_value_count, int_value_count == 1 ? "" : "s");
-  int n = write( sd, &int_values, (int_value_count + 1) * sizeof(int_values) );    /* or send()/recv() */
+  int n = write( sd, int_values, sizeof(int_values) );    /* or send()/recv() */
 
   if ( n == -1 )
   {
@@ -106,7 +106,7 @@ int main( int argc, char * argv[] )
   else  /* n > 0 */
   {
     res = ntohl(res);
-    printf( "SERVER: Rcvd response %d\n", res );
+    printf( "CLIENT: Rcvd response %d\n", res );
   }
 
   // Second response
@@ -125,10 +125,10 @@ int main( int argc, char * argv[] )
   else  /* n > 0 */
   {
     buffer[n] = '\0';    /* assume we rcvd text-based data */
-    printf( "SERVER: Rcvd response \"%s\"\n", buffer );
+    printf( "CLIENT: Rcvd response \"%s\"\n", buffer );
   }
 
-  printf("CLIENT: Disconnected from to %s (port %d)", hostname, inport);
+  printf("CLIENT: Disconnected from server\n");
 
   close( sd );
 
