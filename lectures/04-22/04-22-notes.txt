@@ -1,0 +1,13 @@
+[04/22/2021]
+
+Exam 2 grading will be completed for Monday 4/26
+-- will review exam solutions on Monday
+-- grade inquiry window will open then
+
+Last required topic is Network Programming
+
+LecEx4 (UDP) posted and due 4/28
+
+HW4 will be much smaller in scale (TCP)
+
+Final Exam 5/10 -- same format as Exam 1 and Exam 2

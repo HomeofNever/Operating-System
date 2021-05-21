@@ -24,33 +24,62 @@ int main( int argc, char * argv[] )
   /* on Submitty, there will likely be more code here that validates the
       global variables at this point... */
 
+  free( dead_end_boards );  /* (v1.1) see PDF specifications */
+
   return rc;
 }
 
 #if 0
   bash$ a.out 3 4 0 0 4
 
-                      S...
+                      S...   (**** this diagram is incomplete ****)
                       ....
-                      ....
+                      ....   (**** this diagram is one possibility ****)
                       /  \
             THREAD 1 /    \ THREAD 2
                     /      \
                 S3..        S...
                 ..1.        ....
                 2...        .1..
-                /  \
-      THREAD 3 /    \ THREAD 4
-              /      \
-          S36.        S3..
+                /  \            \
+      THREAD 3 /    \ THREAD 4   \
+              /      \            \
+          S36.        S3..         etc.
           ..14        ..1.
           25..        2.4.
-          /  \
-THREAD 5 /    \ THREAD 6
-        /      \
-    S369        S369
+          /  \            \
+THREAD 5 /    \ THREAD 6   \
+        /      \            \
+    S369        S369         etc.
     b814        7a14
     25a7        258b
 
-#endif
 
+  if we run hw3 code in NO_PARALLEL mode...
+
+  bash$ a.out 3 4 0 0 4
+
+                      S...   (**** this diagram is incomplete ****)
+                      ....
+                      ....
+                      /  \
+            THREAD 1 /    \ THREAD 12
+                    /      \
+                S3..        S...
+                ..1.        ....
+                2...        .1..
+                /  \            \
+      THREAD 2 /    \ THREAD 5   \
+              /      \            \
+          S36.        S3..         etc.
+          ..14        ..1.
+          25..        2.4.
+          /  \            \
+THREAD 3 /    \ THREAD 4   \
+        /      \            \
+    S369        S369         etc.
+    b814        7a14
+    25a7        258b
+
+
+#endif

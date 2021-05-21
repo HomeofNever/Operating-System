@@ -1,0 +1,154 @@
+[03/15/2021]
+
+Project
+-- look to the gradeable to form teams
+   -- click on the Seek Team/Partner to find a team to join
+   -- also post on the Discussion Forum that you're looking for a team
+-- thoughts about organizing the project:
+   -- design/implement the RR/FCFS algorithms
+   -- design/implement the SJF/SRT algorithms
+   -- design/implement the surrounding framework, simout.txt
+
+Exam 1
+-- grades should be published (and solutions) this Wed 3/17
+
+Lecture Exercise 3
+-- posted by week's end
+
+Homework 3
+-- due date TBD in early April
+
+=======================================================================
+
+SYNCHRONIZATION
+
+-- synchronization problems are inherent to parallel programming
+    (i.e., multiple processes via fork() using shared memory
+     or shared resources, multiple threads, etc.)
+
+                  SHARED MEMORY
+                 +-------------+
+                 | shared x    | <== initially x = 5
+                 +-------------+
+
+  Process P1                      Process P2
++--------------+                +--------------+
+|              |                |              |
+| local y      |                | local z      |
+|              |                |              |
+|              |                |              |  At <point A> and <point B>,
+|              |                |              |   what is the value of x?
+|--------------|                |--------------|  What is the exact output of
+| x += 4       |                | x++          |   each process?
+| y = x        |                | z = x        |
+|--------------|                |--------------|
+|              |                |              |
+| print x      |                | print x      |
+| print y      |                | print z      |
+|              |                |              |
+|              |                |              |
+|  <point A>   |                |  <point B>   |
++--------------+                +--------------+
+
+  what is x at <point A> and <point B> of each process?
+
+    x == 5    <== starts at 5
+
+P1: x += 4    <== 9
+P1: y = x     <== y = 9
+P2: x++       <== 10
+P2: z = x     <== z = 10
+P1: print x   <== 10
+P1: print y   <== 9
+P2: print x   <== 10
+P2: print z   <== 10
+
+  (to do: write down the other possibilities here....)
+
+    6, 9, 10
+
+
+ x might not always end up being 10......
+
+P1:
+    x += 4  ==============>  x = x + 4
+
+                             LOAD x     ; load the value of x into a register (5)
+                             ADD #4     ; add 4 to that register (9)
+                         <----context-switch--------->
+                             STORE x    ; store the new value (9) back in x
+
+P2:
+    x++  =================>  x = x + 1
+
+                             LOAD x     ; load the value of x into a register (5)
+                             INCR       ; add 1 to that register (6)
+                             STORE x    ; store the new value (6) back in x
+
+   given the above context-switch, we end up with x only equal to 9
+    (we've lost the x++ update/change)
+
+
+                  SHARED MEMORY
+                 +-------------+
+                 | shared x    | <== initially x = 5
+                 +-------------+
+                 | shared abc  |
+                 +-------------+
+
+  Process P1                      Process P2
++--------------+                +--------------+
+|              |                |              |
+| local y      |                | local z      |
+|              |                |              |
+|              |                |              |  At <point A> and <point B>,
+|              |                |              |   what is the value of x?
+|--------------|                |--------------|  What is the exact output of
+> x += 4       < CRITICAL       > x++          <   each process?
+> y = x        < SECTIONS for x > z = x        <
+|--------------|                |--------------|
+|              |                |              |
+| print x      |                | print x      |
+| print y      |                | print z      |
+|              |                |              |
+|--------------|                |--------------|
+> abc = 100    < CRITICAL       > abc = 200    <
+>              < SECTIONS abc   >              <
+|--------------|                |--------------|
+|              |                |              |
+|  <point A>   |                |  <point B>   |
++--------------+                +--------------+
+
+
+
+The highlighted CRITICAL SECTIONS shown above
+ -- to synchronize these two processes, only one (and no more than one)
+    process can be in its critical section at any given time
+
+A CRITICAL SECTION guarantees MUTUAL EXCLUSION among multiple processes
+ (or threads) for access to one or more shared resources (e.g., variable x)
+
+MUTUAL EXCLUSION here means that no more than one process can
+ be running in its critical section at any given time
+
+If we synchronized the critical sections for x in the diagram above,
+ then x would be guaranteed to be 10 when both processes get to
+  <point A> and <point B>
+
+
+
+
+
+To synchronize processes (or threads), first we must identify the
+ critical sections in the code
+
+-- the OS must control access to the critical sections by providing us
+    (as programmers) some mechanism to define the critical sections, etc.
+
+
+Synchronization:
+(1) data synchronization
+(2) process/thread synchronization -- sequence of events
+                              (e.g., one process writes to a file, then
+                                      a second process reads from the file)
+

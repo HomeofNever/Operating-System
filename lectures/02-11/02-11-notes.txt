@@ -1,0 +1,9 @@
+[02/11/2021]
+
+When we call fork() and a child process is created, we end up with...
+
+      *** TWO SEPARATE AND INDEPENDENT PROCESSES ***
+
+Is fork() efficient?  Why copy everything to the child process?
+
+

@@ -1,0 +1,9 @@
+PARENT: Collecting counts for 1 file and the sentinel...
+PARENT: Calling fork() to create child process for "hw2-input08.txt"
+PARENT: Calling fork() to create child process for the sentinel
+CHILD: Processing "hw2-input08.txt"
+CHILD: Calling execl() to execute sentinel.out...
+CHILD: Done processing "hw2-input08.txt"
+PARENT: File "hw2-input08.txt" -- 918 bytes, 184 words, 14 lines, 0 digits
+PARENT: Sentinel -- 70 bytes, 26 words, 17 lines, 2 digits
+PARENT: All done -- exiting...

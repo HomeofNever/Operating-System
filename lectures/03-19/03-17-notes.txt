@@ -1,0 +1,38 @@
+[03/17/2021]
+
+Multiple threads
+-- in ONE process, we can have multiple threads of execution
+    running in parallel
+
+
+   ONE PROCESS ./a.out
+  +---------------------------------+
+  |           main()                |
+  |             |                   |
+  |             |                   |
+  |             v                   |
+  |      create a few threads...    |
+  |     /       |          \        |
+  |  Count    Echo('R')   Echo('P') |
+  | thread1   thread2     thread3   |
+  |   |          |           |      |
+  |   |         /            |      |
+  |   |        |              \     |
+  |  /          \              \    |
+  | |            \              |   |
+  | |             v             v   |
+  | v                               |
+  |                                 |
+  | these threads join() back in    |
+  |  to the parent thread           |
+  |                                 |
+  +---------------------------------+
+
+The purpose behind joining threads back in to the parent thread:
+-- we might want to return one or more values back from the child
+    to the parent
+-- we might want to ensure a specific sequence of events
+
+
+
+

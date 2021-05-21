@@ -1,0 +1,30 @@
+[04/05/2021]
+
+To synchronize processes (or threads), first we must identify the
+ critical sections in the code
+
+-- the OS must control access to the critical sections by providing us
+    (as programmers) some mechanism to define the critical sections, etc.
+
+Synchronization:
+(1) data synchronization
+(2) process/thread synchronization -- sequence of events
+
+
+
+  semaphore S is non-negative int variable
+
+  P( semaphore S )      /* this P() operation MUST execute without    */
+  {                     /*  any interruption, i.e., no context switch */
+    while ( S == 0 )    /*   between the while() loop and executing   */
+    {                   /*    the S-- statement                       */
+      /* busy wait */
+    }
+    S--;
+  }
+
+  V( semaphore S )
+  {
+    S++;
+  }
+

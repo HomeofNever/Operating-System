@@ -1,0 +1,31 @@
+[03/04/2021]
+
+
+A queueing system is completely described by
+-- the input
+    (how do "customers" or processes arrive and join the system?)
+-- the queue discipline
+    (how is the queue ordered?  e.g., FCFS)
+-- the service mechanism
+    (how many servers (e.g., # of CPUs)?)
+
+
+   arrival process
+   (M is memoryless, i.e., a Poisson arrival process
+    with rate lambda)
+   (D is deterministic, i.e., interarrival interval is
+    fixed and non-random)
+   (G is general)
+      |
+      v
+      M/M/1 queue
+        ^ ^
+        | |
+        | number of independent servers
+        |
+     service process
+
+-- M essentially means that each process arrival is
+    independent and the average interarrival time is fixed
+    ^^^^^^^^^^^         ^^^^^^^
+

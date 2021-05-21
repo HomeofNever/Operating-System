@@ -1,0 +1,342 @@
+MAIN: Solving Sonny's knight's tour problem for a 3x4 board
+MAIN: Sonny starts at row 0 and column 0
+MAIN: >>S...
+MAIN:   ....
+MAIN:   ....<<
+MAIN: 2 possible moves after move #1; creating 2 child threads...
+MAIN: >>S...
+MAIN:   ....
+MAIN:   ....<<
+THREAD 1: >>S...
+THREAD 1:   ..S.
+THREAD 1:   ....<<
+THREAD 1: >>S...
+THREAD 1:   ..S.
+THREAD 1:   S...<<
+THREAD 1: >>SS..
+THREAD 1:   ..S.
+THREAD 1:   S...<<
+THREAD 1: 2 possible moves after move #4; creating 2 child threads...
+THREAD 1: >>SS..
+THREAD 1:   ..S.
+THREAD 1:   S...<<
+THREAD 2: >>SS..
+THREAD 2:   ..SS
+THREAD 2:   S...<<
+THREAD 2: >>SS..
+THREAD 2:   ..SS
+THREAD 2:   SS..<<
+THREAD 2: >>SSS.
+THREAD 2:   ..SS
+THREAD 2:   SS..<<
+THREAD 2: 2 possible moves after move #7; creating 2 child threads...
+THREAD 2: >>SSS.
+THREAD 2:   ..SS
+THREAD 2:   SS..<<
+THREAD 3: >>SSS.
+THREAD 3:   ..SS
+THREAD 3:   SS.S<<
+THREAD 3: >>SSS.
+THREAD 3:   .SSS
+THREAD 3:   SS.S<<
+THREAD 3: >>SSSS
+THREAD 3:   .SSS
+THREAD 3:   SS.S<<
+THREAD 3: >>SSSS
+THREAD 3:   .SSS
+THREAD 3:   SSSS<<
+THREAD 3: >>SSSS
+THREAD 3:   SSSS
+THREAD 3:   SSSS<<
+THREAD 3: Sonny found a full knight's tour!
+THREAD 2: Thread 3 joined (returned 12)
+THREAD 4: >>SSS.
+THREAD 4:   S.SS
+THREAD 4:   SS..<<
+THREAD 4: >>SSS.
+THREAD 4:   S.SS
+THREAD 4:   SSS.<<
+THREAD 4: >>SSSS
+THREAD 4:   S.SS
+THREAD 4:   SSS.<<
+THREAD 4: >>SSSS
+THREAD 4:   SSSS
+THREAD 4:   SSS.<<
+THREAD 4: >>SSSS
+THREAD 4:   SSSS
+THREAD 4:   SSSS<<
+THREAD 4: Sonny found a full knight's tour!
+THREAD 2: Thread 4 joined (returned 12)
+THREAD 1: Thread 2 joined (returned 12)
+THREAD 5: >>SS..
+THREAD 5:   ..S.
+THREAD 5:   S.S.<<
+THREAD 5: 2 possible moves after move #5; creating 2 child threads...
+THREAD 5: >>SS..
+THREAD 5:   ..S.
+THREAD 5:   S.S.<<
+THREAD 6: >>SS.S
+THREAD 6:   ..S.
+THREAD 6:   S.S.<<
+THREAD 6: >>SS.S
+THREAD 6:   .SS.
+THREAD 6:   S.S.<<
+THREAD 6: >>SS.S
+THREAD 6:   .SS.
+THREAD 6:   S.SS<<
+THREAD 6: >>SSSS
+THREAD 6:   .SS.
+THREAD 6:   S.SS<<
+THREAD 6: 2 possible moves after move #9; creating 2 child threads...
+THREAD 6: >>SSSS
+THREAD 6:   .SS.
+THREAD 6:   S.SS<<
+THREAD 7: >>SSSS
+THREAD 7:   .SS.
+THREAD 7:   SSSS<<
+THREAD 7: >>SSSS
+THREAD 7:   .SSS
+THREAD 7:   SSSS<<
+THREAD 7: Dead end at move #11
+THREAD 7: >>SSSS
+THREAD 7:   .SSS
+THREAD 7:   SSSS<<
+THREAD 6: Thread 7 joined (returned 11)
+THREAD 8: >>SSSS
+THREAD 8:   SSS.
+THREAD 8:   S.SS<<
+THREAD 8: Dead end at move #10
+THREAD 8: >>SSSS
+THREAD 8:   SSS.
+THREAD 8:   S.SS<<
+THREAD 6: Thread 8 joined (returned 10)
+THREAD 5: Thread 6 joined (returned 11)
+THREAD 9: >>SS..
+THREAD 9:   S.S.
+THREAD 9:   S.S.<<
+THREAD 9: >>SSS.
+THREAD 9:   S.S.
+THREAD 9:   S.S.<<
+THREAD 9: 2 possible moves after move #7; creating 2 child threads...
+THREAD 9: >>SSS.
+THREAD 9:   S.S.
+THREAD 9:   S.S.<<
+THREAD 10: >>SSS.
+THREAD 10:   S.S.
+THREAD 10:   S.SS<<
+THREAD 10: >>SSS.
+THREAD 10:   SSS.
+THREAD 10:   S.SS<<
+THREAD 10: >>SSSS
+THREAD 10:   SSS.
+THREAD 10:   S.SS<<
+THREAD 10: Dead end at move #10
+THREAD 10: >>SSSS
+THREAD 10:   SSS.
+THREAD 10:   S.SS<<
+THREAD 9: Thread 10 joined (returned 10)
+THREAD 11: >>SSS.
+THREAD 11:   S.S.
+THREAD 11:   SSS.<<
+THREAD 11: >>SSS.
+THREAD 11:   S.SS
+THREAD 11:   SSS.<<
+THREAD 11: Dead end at move #9
+THREAD 11: >>SSS.
+THREAD 11:   S.SS
+THREAD 11:   SSS.<<
+THREAD 9: Thread 11 joined (returned 9)
+THREAD 5: Thread 9 joined (returned 10)
+THREAD 1: Thread 5 joined (returned 11)
+MAIN: Thread 1 joined (returned 12)
+THREAD 12: >>S...
+THREAD 12:   ....
+THREAD 12:   .S..<<
+THREAD 12: 2 possible moves after move #2; creating 2 child threads...
+THREAD 12: >>S...
+THREAD 12:   ....
+THREAD 12:   .S..<<
+THREAD 13: >>S.S.
+THREAD 13:   ....
+THREAD 13:   .S..<<
+THREAD 13: 2 possible moves after move #3; creating 2 child threads...
+THREAD 13: >>S.S.
+THREAD 13:   ....
+THREAD 13:   .S..<<
+THREAD 14: >>S.S.
+THREAD 14:   ....
+THREAD 14:   .S.S<<
+THREAD 14: >>S.S.
+THREAD 14:   .S..
+THREAD 14:   .S.S<<
+THREAD 14: >>S.SS
+THREAD 14:   .S..
+THREAD 14:   .S.S<<
+THREAD 14: >>S.SS
+THREAD 14:   .S..
+THREAD 14:   .SSS<<
+THREAD 14: 2 possible moves after move #7; creating 2 child threads...
+THREAD 14: >>S.SS
+THREAD 14:   .S..
+THREAD 14:   .SSS<<
+THREAD 15: >>SSSS
+THREAD 15:   .S..
+THREAD 15:   .SSS<<
+THREAD 15: 2 possible moves after move #8; creating 2 child threads...
+THREAD 15: >>SSSS
+THREAD 15:   .S..
+THREAD 15:   .SSS<<
+THREAD 16: >>SSSS
+THREAD 16:   .S.S
+THREAD 16:   .SSS<<
+THREAD 16: Dead end at move #9
+THREAD 16: >>SSSS
+THREAD 16:   .S.S
+THREAD 16:   .SSS<<
+THREAD 15: Thread 16 joined (returned 9)
+THREAD 17: >>SSSS
+THREAD 17:   .S..
+THREAD 17:   SSSS<<
+THREAD 17: >>SSSS
+THREAD 17:   .SS.
+THREAD 17:   SSSS<<
+THREAD 17: Dead end at move #10
+THREAD 17: >>SSSS
+THREAD 17:   .SS.
+THREAD 17:   SSSS<<
+THREAD 15: Thread 17 joined (returned 10)
+THREAD 14: Thread 15 joined (returned 10)
+THREAD 18: >>S.SS
+THREAD 18:   SS..
+THREAD 18:   .SSS<<
+THREAD 18: Dead end at move #8
+THREAD 18: >>S.SS
+THREAD 18:   SS..
+THREAD 18:   .SSS<<
+THREAD 14: Thread 18 joined (returned 8)
+THREAD 13: Thread 14 joined (returned 10)
+THREAD 19: >>S.S.
+THREAD 19:   S...
+THREAD 19:   .S..<<
+THREAD 19: >>S.S.
+THREAD 19:   S...
+THREAD 19:   .SS.<<
+THREAD 19: 2 possible moves after move #5; creating 2 child threads...
+THREAD 19: >>S.S.
+THREAD 19:   S...
+THREAD 19:   .SS.<<
+THREAD 20: >>SSS.
+THREAD 20:   S...
+THREAD 20:   .SS.<<
+THREAD 20: 2 possible moves after move #6; creating 2 child threads...
+THREAD 20: >>SSS.
+THREAD 20:   S...
+THREAD 20:   .SS.<<
+THREAD 21: >>SSS.
+THREAD 21:   S..S
+THREAD 21:   .SS.<<
+THREAD 21: Dead end at move #7
+THREAD 21: >>SSS.
+THREAD 21:   S..S
+THREAD 21:   .SS.<<
+THREAD 20: Thread 21 joined (returned 7)
+THREAD 22: >>SSS.
+THREAD 22:   S...
+THREAD 22:   SSS.<<
+THREAD 22: >>SSS.
+THREAD 22:   S.S.
+THREAD 22:   SSS.<<
+THREAD 22: Dead end at move #8
+THREAD 22: >>SSS.
+THREAD 22:   S.S.
+THREAD 22:   SSS.<<
+THREAD 20: Thread 22 joined (returned 8)
+THREAD 19: Thread 20 joined (returned 8)
+THREAD 23: >>S.SS
+THREAD 23:   S...
+THREAD 23:   .SS.<<
+THREAD 23: >>S.SS
+THREAD 23:   SS..
+THREAD 23:   .SS.<<
+THREAD 23: >>S.SS
+THREAD 23:   SS..
+THREAD 23:   .SSS<<
+THREAD 23: Dead end at move #8
+THREAD 23: >>S.SS
+THREAD 23:   SS..
+THREAD 23:   .SSS<<
+THREAD 19: Thread 23 joined (returned 8)
+THREAD 13: Thread 19 joined (returned 8)
+THREAD 12: Thread 13 joined (returned 10)
+THREAD 24: >>S...
+THREAD 24:   ...S
+THREAD 24:   .S..<<
+THREAD 24: >>SS..
+THREAD 24:   ...S
+THREAD 24:   .S..<<
+THREAD 24: 2 possible moves after move #4; creating 2 child threads...
+THREAD 24: >>SS..
+THREAD 24:   ...S
+THREAD 24:   .S..<<
+THREAD 25: >>SS..
+THREAD 25:   ...S
+THREAD 25:   .SS.<<
+THREAD 25: 2 possible moves after move #5; creating 2 child threads...
+THREAD 25: >>SS..
+THREAD 25:   ...S
+THREAD 25:   .SS.<<
+THREAD 26: >>SS.S
+THREAD 26:   ...S
+THREAD 26:   .SS.<<
+THREAD 26: >>SS.S
+THREAD 26:   .S.S
+THREAD 26:   .SS.<<
+THREAD 26: >>SS.S
+THREAD 26:   .S.S
+THREAD 26:   .SSS<<
+THREAD 26: >>SSSS
+THREAD 26:   .S.S
+THREAD 26:   .SSS<<
+THREAD 26: >>SSSS
+THREAD 26:   SS.S
+THREAD 26:   .SSS<<
+THREAD 26: Dead end at move #10
+THREAD 26: >>SSSS
+THREAD 26:   SS.S
+THREAD 26:   .SSS<<
+THREAD 25: Thread 26 joined (returned 10)
+THREAD 27: >>SS..
+THREAD 27:   S..S
+THREAD 27:   .SS.<<
+THREAD 27: >>SSS.
+THREAD 27:   S..S
+THREAD 27:   .SS.<<
+THREAD 27: >>SSS.
+THREAD 27:   S..S
+THREAD 27:   .SSS<<
+THREAD 27: >>SSS.
+THREAD 27:   SS.S
+THREAD 27:   .SSS<<
+THREAD 27: >>SSSS
+THREAD 27:   SS.S
+THREAD 27:   .SSS<<
+THREAD 27: Dead end at move #10
+THREAD 27: >>SSSS
+THREAD 27:   SS.S
+THREAD 27:   .SSS<<
+THREAD 25: Thread 27 joined (returned 10)
+THREAD 24: Thread 25 joined (returned 10)
+THREAD 28: >>SS..
+THREAD 28:   ...S
+THREAD 28:   SS..<<
+THREAD 28: >>SS..
+THREAD 28:   ..SS
+THREAD 28:   SS..<<
+THREAD 28: Dead end at move #6
+THREAD 28: >>SS..
+THREAD 28:   ..SS
+THREAD 28:   SS..<<
+THREAD 24: Thread 28 joined (returned 6)
+THREAD 12: Thread 24 joined (returned 10)
+MAIN: Thread 12 joined (returned 10)
+MAIN: All threads joined; full knight's tour of 12 achieved

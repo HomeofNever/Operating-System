@@ -1,0 +1,180 @@
+[01/25/2021]
+
+"Clutter is the disease of American writing" -- William Zinsser
+
+Clutter and code bloat form the disease of coding today
+
+
+What is an operating system?
+
+-- a program that supports the computer's basic functions
+    (storing files, etc.)
+
+-- managing filesystem, file hierarchy, devices, etc.
+
+-- software that abstracts direct hardware usage, essentially
+    providing the interface between users and hardware
+
+-- program that runs all of your software and mediates interactions
+    with hardware
+
+-- software that manages and schedules the execution of other software
+
+-- a program that manages competing operations
+
+-- abstraction for programmers (i.e., system calls)
+
+-- a (very) large-scale software system
+
+**** a program that allocates and manages resources for other programs ****
+
+     OPERATING SYSTEM == RESOURCE MANAGER
+
+
+
+Operating system services:
+
+-- Resource allocation
+   (memory management, process scheduling, disk access, I/O, etc.)
+
+-- Program execution -- fork()
+   (load programs into memory, run/suspend/terminate programs,
+    handle/display errors)
+
+-- Filesystem manipulation
+   (read/write/traverse filesystem directories,
+    read/write/traverse files, enforce permissions/security)
+
+-- Interprocess Communication (IPC)
+   (processes exchange information via shared memory,
+    message passing, sockets, pipes, files, etc.)
+   (key challenges: synchronization)
+
+-- Error detection and recovery
+   (Detect errors in CPU, memory, I/O, processes, etc.)
+   (Recover from errors gracefully)
+
+-- Account and resource protection/security
+   (Users, groups, account verification, memory protection, etc.)
+
+-- Usage monitoring
+   (processes, users, networks, log files, etc.)
+
+
+
+Multiprogramming
+-- In multiprogramming, several processes reside in memory
+    at the same time
+-- CPU is shared and managed by the OS
+-- Addresses the problem of the CPU being underutilized
+-- This introduces a new problem.....
+   ...need to perform a "context switch" to switch the CPU's context
+       from one process to another
+
+Timesharing
+-- Given a multiprogramming environment...
+-- To ensure fairness, use timesharing in which the CPU
+    cycles through all ready processes
+-- Each process is given a fixed and finite amount of CPU time
+    in which the process executes its instructions (CPU burst)
+-- Switching from one running process to another is called
+    a "context switch"
+
+Program Execution (process)
+---------------------------
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+   I/O burst
+       |
+       |
+       v
+   CPU burst
+       |
+       |
+       v
+Program termination
+
+
+
+
+  PROCESS
+
+ +------------------------+
+ | runtime heap           | <== dynamic allocation
+ |      |                 |     -- the "new" keyword C++/Java
+ |      | XXXXX YYYYY     |     -- in C, malloc(), calloc(),
+ |      |                 |         realloc()
+ |      |                 |     -- don't forget to use free()...
+ |      v                 |        ...or else memory leak
+ |                        |                   ^^^^^^^^^^^
+ |                        |
+ |                        |
+ |                        |
+ |      ^                 |
+ |      |                 |
+ |      |                 |
+ |      |                 |
+ |      | main()          |
+ |      |  int x  int * y |
+ |      |  char * cptr    |
+ |      |                 |
+ | runtime stack          | <== static allocation
+ |------------------------|     (e.g., int x, int * y)
+ | code/data/etc.         |
+ +------------------------+
+    ^
+    |
+  read-only process memory

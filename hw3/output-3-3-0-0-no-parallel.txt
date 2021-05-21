@@ -1,0 +1,69 @@
+MAIN: Solving Sonny's knight's tour problem for a 3x3 board
+MAIN: Sonny starts at row 0 and column 0
+MAIN: >>S..
+MAIN:   ...
+MAIN:   ...<<
+MAIN: 2 possible moves after move #1; creating 2 child threads...
+MAIN: >>S..
+MAIN:   ...
+MAIN:   ...<<
+THREAD 1: >>S..
+THREAD 1:   ..S
+THREAD 1:   ...<<
+THREAD 1: >>S..
+THREAD 1:   ..S
+THREAD 1:   S..<<
+THREAD 1: >>SS.
+THREAD 1:   ..S
+THREAD 1:   S..<<
+THREAD 1: >>SS.
+THREAD 1:   ..S
+THREAD 1:   S.S<<
+THREAD 1: >>SS.
+THREAD 1:   S.S
+THREAD 1:   S.S<<
+THREAD 1: >>SSS
+THREAD 1:   S.S
+THREAD 1:   S.S<<
+THREAD 1: >>SSS
+THREAD 1:   S.S
+THREAD 1:   SSS<<
+THREAD 1: Dead end at move #8
+THREAD 1: >>SSS
+THREAD 1:   S.S
+THREAD 1:   SSS<<
+MAIN: Thread 1 joined (returned 8)
+THREAD 2: >>S..
+THREAD 2:   ...
+THREAD 2:   .S.<<
+THREAD 2: >>S.S
+THREAD 2:   ...
+THREAD 2:   .S.<<
+THREAD 2: >>S.S
+THREAD 2:   S..
+THREAD 2:   .S.<<
+THREAD 2: >>S.S
+THREAD 2:   S..
+THREAD 2:   .SS<<
+THREAD 2: >>SSS
+THREAD 2:   S..
+THREAD 2:   .SS<<
+THREAD 2: >>SSS
+THREAD 2:   S..
+THREAD 2:   SSS<<
+THREAD 2: >>SSS
+THREAD 2:   S.S
+THREAD 2:   SSS<<
+THREAD 2: Dead end at move #8
+THREAD 2: >>SSS
+THREAD 2:   S.S
+THREAD 2:   SSS<<
+MAIN: Thread 2 joined (returned 8)
+MAIN: All threads joined; best solution(s) visited 8 squares out of 9
+MAIN: Dead end boards covering at least 4 squares are:
+MAIN: >>SSS
+MAIN:   S.S
+MAIN:   SSS<<
+MAIN: >>SSS
+MAIN:   S.S
+MAIN:   SSS<<

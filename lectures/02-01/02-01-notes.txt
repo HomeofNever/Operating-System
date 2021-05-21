@@ -1,0 +1,37 @@
+[02/01/2021]
+
+
+  char ==> 1 byte  (including '\n' and '\r' and '\0' and '\t' and etc.)
+                              ^^^^     ^^^^
+                             newline  carriage
+                                       return
+
+
+  int arr[1024];  /* 1024 int variables --> 1024*4bytes = 4096 bytes */
+
+  int * arr = malloc( 1024 * sizeof( int ) );
+                             ^^^^^^^^^^^^^
+                                4 bytes
+
+
+
+  buffer[i] = '\0';
+
+  *(buffer + i) = '\0';
+
+
+
+  *****************************************************************
+  ***                                                           ***
+  *** For Nooks, try using the Microsoft login option with your ***
+  ***  @rpi.edu email address -- if that does not work, then    ***
+  ***   you can use the Google (or Facebook) login option       ***
+  ***                                                           ***
+  *** The direct URL is:                                        ***
+  ***   https://app.nooks.in/goto/qaIoutvTQp6E7ZEc?pwd=2J7w5S   ***
+  ***                                                           ***
+  *** Also feel free to reach out for help via the help option  ***
+  ***  shown in Nooks...                                        ***
+  ***                                                           ***
+  *****************************************************************
+

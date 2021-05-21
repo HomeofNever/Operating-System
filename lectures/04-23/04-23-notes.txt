@@ -1,0 +1,114 @@
+[04/23/2021]
+
+SERVER TYPES:
+
+(0) Iterative server (often UDP): accept incoming UDP datagrams on
+     a specific port number; or accept and handle TCP connections
+      one after the other (e.g., udp-server.c, tcp-server-iterative.c)
+
+(1) fork()-based server (e.g., tcp-server-fork.c): a child process is
+     created to handle each received/accepted TCP client connection
+
+(2) fork()-based server with pre-forked processes: pre-fork() N processes,
+     then as incoming TCP client connection requests come in, assign them
+      to child processes (which requires shared memory and synchronization)
+
+(3) thread-based server: a child thread is created for each received
+     TCP client connection
+
+(4) thread-based server with pre-created threads (i.e., a thread pool):
+     pre-create N threads, then as incoming TCP client connection requests
+      come in, assign them to child threads (which requires synchronization)
+
+(5) select()-based (multiplex) server: a single process (no multi-threading)
+     that uses the select() system call, which enables the process to poll
+      multiple descriptors and check for activity on any of them
+
+     e.g., tcp-server-multiplex.c
+
+    this approach eliminates the need (complexity/overhead) of multiple
+     processes or multiple threads....
+
+      ....but this is still an iterative server
+
+    But....what happens if this process terminates?
+
+================================================================
+
+TCP server (e.g., iterative server):
+{
+  socket()              create the server-side socket (endpoint)
+  bind()                bind (associate) a specific port number with the socket,
+                         which will be the listener port
+  listen()              identify the socket as a TCP listener, meaning it will
+                         be ready to accept() incoming client connection requests
+
+  while ( 1 )
+  {
+    accept()            accept an incoming client connection request (BLOCKING)
+
+    recv()/send()       read/write data across the established connection
+      --or--
+    read()/write()
+
+    close()             close the client socket descriptor
+  }
+}
+
+TCP client (e.g., tcp-client.c):
+{
+  socket()              create the client-side socket (endpoint)
+  connect()             attempt to establish a connection to the specified
+                         server and port number via TCP
+
+  recv()/send()         read/write data across the established connection
+      --or--
+  read()/write()
+
+  close()               close the socket descriptor
+}
+
+
+
+   SERVER (machine)                         CLIENT (machine)
+  +-------------+                          +-----------+
+  |web-server=====80 (HTTP)                |           |
+  |             |                          |           |
+  |     server ===8123               41634=== client   |
+  |             |                          |           |
+  |             |                          |           |
+  |             |                          |           |
+  |             |                          |           |
+  +-------------+                          +-----------+
+
+
+   SERVER (machine)                         CLIENT (machine)
+  +-------------+                          +-----------+
+  |web-server=====80 (HTTP)                |           |
+  |             |                          |           |
+  |     server ===8123 <=============41634=== client   |
+  |             |  accept()                |           |
+  |             |                          |           |
+  |             |                          |           |
+  |             |                          |           |
+  +-------------+                          +-----------+
+
+
+   SERVER (machine)                         CLIENT (machine)
+  +-------------+                          +-----------+
+  |web-server=====80 (HTTP)                |           |
+  |             |                          |           |
+  |fd:3 server ===8123                     |           |
+  |             |                          |           |
+  |             |                          |           |
+  |fd:4 server ===8123===============41634=== client   |
+  |      read() |                          |           |
+  |     write() |                          |           |
+  |             |                          |           |
+  +-------------+                          +-----------+
+
+
+
+
+
+

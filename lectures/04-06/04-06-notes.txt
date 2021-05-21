@@ -1,0 +1,389 @@
+[04/06/2021]
+
+
+Synchronization, Semaphores, and Mutual Exclusion
+
+  /* Process P1 or Thread T1 */
+  while ( 1 )
+  {
+    execNonCriticalSection();
+    execCriticalSection();
+  }
+
+  /* Process P2 or Thread T2 */
+  while ( 1 )
+  {
+    execNonCriticalSection();
+    execCriticalSection();
+  }
+
+     ...
+
+  /* Process Pn or Thread Tn */
+  while ( 1 )
+  {
+    execNonCriticalSection();
+    execCriticalSection();
+  }
+
+========================================================================
+
+
+                    /* global or shared memory */
+                    int x = 5;
+                    int lock = 0;  /* 0 == lock is available */
+
+  /* Thread T1 */                      /* Thread T2 */
+  while ( 1 )                          while ( 1 )
+  {                                    {
+    execNonCriticalSection();            execNonCriticalSection();
+    while ( lock == 1 )                  while ( lock == 1 )
+    {                                    {
+      /* busy wait */                      /* busy wait */
+    }                                    }
+ --<context-switch>--
+    lock = 1;                            lock = 1;
+    execCriticalSection();               execCriticalSection();
+    lock = 0;                            lock = 0;
+  }                                    }
+
+In the above solution, if a context switch occurs where shown,
+ then both T1 and T2 can be in their critical sections at the same
+  time (which is bad)
+
+
+Below is a two-thread (or two-process) solution (Dekker's algorithm):
+
+                    /* global or shared memory */
+                    int x = 5;
+                    int needLockT1 = 0;  /* 0 or 1 */
+                    int needLockT2 = 0;  /* 0 or 1 */
+                    int turn = T1;       /* T1 or T2 */
+
+  /* Thread T1 */                      /* Thread T2 */
+  while ( 1 )                          while ( 1 )
+  {                                    {
+    execNonCriticalSection();            execNonCriticalSection();
+    needLockT1 = 1;                      needLockT2 = 1;
+    turn = T2;                           turn = T1;
+ <--context-switch-->
+    while ( turn == T2 &&                while ( turn == T1 &&
+            needLockT2 == 1 )                    needLockT1 == 1 )
+    {                                    {
+      /* busy wait */                      /* busy wait */
+    }                                    }
+
+    execCriticalSection();               execCriticalSection();
+    needLockT1 = 0;                      needLockT2 = 0;
+  }                                    }
+
+TO DO: verify (convince yourself) that the above pseudocode will
+        guarantee that only one thread is in its critical section
+         at any given time
+
+  T1: needLockT1 = 1;
+  T1: turn = T2;
+  T2: needLockT2 = 1;
+  T2: turn = T1;
+  T1: execCriticalSection();
+  T1: needLockT1 = 0;
+  T2: execCriticalSection();
+  etc.
+
+TO DO: extend this to an n-thread solution
+
+
+  semaphore S is non-negative int variable
+
+  P( semaphore S )     /* this P() operation MUST execute without    */
+  {                    /*  any interruption, i.e., no context switch */
+    while ( S == 0 )   /*   between exiting the while() loop and     */
+    {                  /*    executing S--                           */
+      /* busy wait */
+    }
+    S--;
+  }
+
+  V( semaphore S )
+  {
+    S++;
+  }
+
+  P() <==  wait()  or  down()
+
+  V() <== signal() or   up()
+
+==========================================================================
+
+PRODUCER/CONSUMER PROBLEM (a.k.a. SHARED BUFFER PROBLEM)
+-- Given a shared buffer (i.e., array) of a fixed size N
+-- One or more producer threads
+-- One or more consumer threads
+
+
+                        /* shared/global memory */
+                        int N = 20;
+                        buffer[N];
+                        
+
+  /* producer */                           /* consumer */
+  while ( 1 )                              while ( 1 )
+  {                                        {
+    item = produce_next_item();              
+                                             item = remove_from_buffer();
+    add_to_buffer( item );                   
+                                             consume( item );
+  }                                        }
+
+
+
+
+
+                        /* shared/global memory */
+                        int N = 20;
+                        buffer[N];
+                        semaphore empty_slots = N;
+                        semaphore used_slots = 0;
+
+  /* producer */                           /* consumer */
+  while ( 1 )                              while ( 1 )
+  {                                        {
+    item = produce_next_item();              P( used_slots );
+    P( empty_slots );                          item = remove_from_buffer();
+      add_to_buffer( item );                 V( empty_slots );
+    V( used_slots );                         consume( item );
+  }                                        }
+
+    (reminder that P() essentially does S-- and V() does S++)
+
+  The above solution uses two counting semaphores to ensure:
+  (1) no buffer overflow will occur in a producer
+  (2) no reading from an empty buffer in a consumer
+
+
+
+
+
+
+                        /* shared/global memory */
+                        int N = 20;
+                        buffer[N];
+                        semaphore empty_slots = N;
+                        semaphore used_slots = 0;
+                        semaphore mutex = 1;
+
+  /* producer */                           /* consumer */
+  while ( 1 )                              while ( 1 )
+  {                                        {
+    item = produce_next_item();              P( used_slots );
+    P( empty_slots );                          P( mutex );
+      P( mutex );                                item = remove_from_buffer();
+        add_to_buffer( item );                 V( mutex );
+      V( mutex );                            V( empty_slots );
+    V( used_slots );                         consume( item );
+  }                                        }
+
+TO DO: parallelize the above solution further such that reads/writes
+        can occur simultaneously in different slots of the array
+                                    ^^^^^^^^^
+
+HINT: focus the mutex on the index of the shared array/buffer...
+
+    (reminder that P() essentially does S-- and V() does S++)
+
+
+=====================================================================================
+
+The READERS/WRITERS PROBLEM:
+
+-- Shared resource is an array, e.g., seating chart of a flight or a concert
+    or a Data Structures exam
+
+-- One or more readers that can be reading simultaneously
+
+-- One or more writers that actually reserve a seat
+   -- When a writer wants to write, no other writers can be writing...?
+   -- When a writer wants to write, no readers can be reading...?
+
+
+=====================================================================================
+
+DINING PHILOSOPHERS PROBLEM               (philosopher == process)
+
+Given: five philosophers that engage in only two activities:
+       -- thinking (i.e., independent computation <== non-critical sections)
+       -- eating (i.e., sharing a resource; therefore, requires synchronization)
+
+  philosopher( i )     /* i in 0..4 */
+  {
+    while ( 1 )
+    {
+      think()
+      eat()
+    }
+  }
+
+Given: shared table with five bowls and five chopsticks,
+        and a bowl of food in the middle of the table
+          (which is endlessly replenished)
+
+Key constraint: to eat(), a philosopher must obtain two chopsticks,
+                 one from the left, one from the right
+
+Other constraints: a philosopher eats for a finite amount of time;
+                    no two philosophers can simultaneously hold
+                     the same chopstick
+
+Goal: Design a solution by which you can guarantee that each
+       philosopher eats; in order to eat, two chopsticks must
+        be in hand
+
+      Solution must avoid deadlock, have no individual starvation,
+       and be fair, efficient, etc.
+
+Deadlock: We have deadlock when no process/thread can make any
+           further progress (i.e., all blocked on P() operation
+            and the given resource will NEVER become available)
+
+
+First attempt:
+
+  chopstick is array[5] of binary semaphores (initialized to { 1, 1, 1, 1, 1 })
+
+  philosopher( i )     /* i in 0..4 */
+  {
+    while ( 1 )
+    {
+      think()
+      P( chopstick[i] )
+        P( chopstick[(i+1)%5] )
+          eat()                 /* critical section */
+        V( chopstick[(i+1)%5] )
+      V( chopstick[i] )
+    }
+  }
+
+Deadlock can occur if the first P() operation is successfully
+ executed by each philosopher, followed immediately by a context switch
+  -- no philosopher gets through their second P() operation
+  -- therefore, no philosopher gets to their V() operation
+
+
+
+Not a good second attempt:
+
+  mutex is a binary semaphore (to lock on)
+  chopstick is array[5] of binary semaphores (initialized to { 1, 1, 1, 1, 1 })
+
+  philosopher( i )     /* i in 0..4 */
+  {
+    while ( 1 )
+    {
+      P( mutex )   <=== reserve the entire table!
+        think()
+        P( chopstick[i] )
+          P( chopstick[(i+1)%5] )
+            eat()                 /* critical section */
+          V( chopstick[(i+1)%5] )
+        V( chopstick[i] )
+      V( mutex )   <=== relinquishing the table...
+    }
+  }
+
+
+
+Third attempt:
+  mutex is a binary semaphore (to lock on)
+  chopstick is array[5] of binary semaphores (initialized to { 1, 1, 1, 1, 1 })
+
+  philosopher( i )     /* i in 0..4 */
+  {
+    while ( 1 )
+    {
+      think()
+      P( mutex );   <== locking the "table" such that we can pick up two chopsticks
+        P( chopstick[i] )
+        P( chopstick[(i+1)%5] )
+      V( mutex );   <==
+      eat()                 /* critical section */
+      V( chopstick[(i+1)%5] )
+      V( chopstick[i] )
+    }
+  }
+
+  TO DO: convince yourself that the above solution "works,"
+          i.e., that this solution successfully avoids deadlock
+
+
+Fourth attempt: -- use an asymmetric solution
+
+  chopstick is array[5] of binary semaphores (initialized to { 1, 1, 1, 1, 1 })
+
+  philosopher( i )     /* i in 0..3 (instead of i in 0..4) */
+  {
+    while ( 1 )
+    {
+      think()
+      P( chopstick[i] )
+        P( chopstick[(i+1)%5] )
+          eat()                 /* critical section */
+        V( chopstick[(i+1)%5] )
+      V( chopstick[i] )
+    }
+  }
+
+  philosopher( i )     /* i is always 4 */
+  {
+    while ( 1 )
+    {
+      think()
+      P( chopstick[(i+1)%5] )    /* we swapped the order of the P() operations */
+        P( chopstick[i] )
+          eat()                 /* critical section */
+        V( chopstick[i] )
+      V( chopstick[(i+1)%5] )
+    }
+  }
+
+  TO DO: convince yourself that the above solution "works,"
+          i.e., that this solution successfully avoids deadlock
+
+
+
+
+
+
+
+
+
+
+                semaphore S, Q
+
+   // process 1                // process 2
+   ...                         ...
+   P( S ) [succeeds]           P( Q ) [succeeds]
+   P( Q ) [block indef.]       P( S ) [block indefinitely]
+   ...                         ...
+   V( Q )                      V( S )
+   V( S )                      V( Q )
+   ...                         ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

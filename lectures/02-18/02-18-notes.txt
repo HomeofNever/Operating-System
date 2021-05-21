@@ -1,0 +1,49 @@
+[02/18/2021]
+
+EWS emails...
+...were sent if you did NOT hand in Homework 1
+-- email me directly if you rcvd one of these emails
+    and let's talk about what's going on....
+
+Lecture Exercise 2 due last night
+-- final deadline (using one late day) is 11:59PM ET 2/18
+
+Homework 2 posted on 2/14
+-- be sure to read the specifications and watch the corresponding video
+-- follow the specifications (try not to "overthink" things)
+
+-- parallelize as much as you can (required for HW2):
+   (a) for n files, parent process calls fork() n+1 times
+   (b) parent process loops and calls waitpid() for each process
+   (c) parent process loops and reads from each pipe expected to
+        have data
+
+-- not required for HW2, but try to:
+   -- consider, if possible, combining (b) and (c) above
+      -- WNOHANG option of waitpid()
+      -- select() 
+
+      *** you could also keep track of child PIDs mapped to ***
+      *** specific file descriptors and combine (b) and (c) ***
+
+
+
+-- bash$ ./sentinel.out 5
+
+   argv[0] == "./sentinel.out\0"
+   argv[1] == "5\0"    <=== sprintf()
+
+
+   char str1[80];
+   scanf( "%s", str1 );
+   /* ... */
+   char buffer[80];
+   sprintf( buffer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ %s", str1 );
+   snprintf( buffer, 80, "ABCDEFGHIJKLMNOPQRSTUVWXYZ %s", str1 );
+
+   also check out:
+       int dprintf(int fd, const char *format, ...);
+
+
+
+

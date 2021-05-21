@@ -1,0 +1,81 @@
+[02/10/2021]
+
+(check out and review fork.c and fork-interleaving.c)
+
+
+-------------------------------------------------------------
+ PID 27123
+ ===========>  p=fork()  ====>  p==27128
+
+-------------------------------------------------------------
+
+
+-------------------------------------------------------------
+ PID 27123
+ ===========>  p=fork()  ====>  p==27128
+                   \
+-----------------+  \   +------------------------------------
+                 |   \
+                 |  p==0  CHILD PROCESS
+                 |        (PID 27128)
+                 +-------------------------------------------
+
+
+
+      *** TWO SEPARATE AND INDEPENDENT PROCESSES ***
+
+
+-- what happens when parent process terminates before child process?
+
+------------------------------------------------------------+
+ PID 27123                                       PARENT     |
+ ===========>  p=fork()  ====>  p==27128  ====>  PROCESS    |
+                   \                            TERMINATES  |
+-----------------+  \   +-----------------------------------+-----
+                 |   \
+                 |  p==0  CHILD PROCESS  ====> ????????????????
+                 |        (PID 27128)
+                 +------------------------------------------------
+
+   -- the child process is inherited by process PID 1
+
+
+
+
+
+-- what happens when child process terminates before parent process?
+
+-------------------------------------------------------------
+ PID 27123
+ ===========>  p=fork()  ====>  p==27128  ====> ???
+                   \
+-----------------+  \   +-----------------------------------+
+                 |   \                           CHILD      |
+                 |  p==0  CHILD PROCESS  ====>  PROCESS     |
+                 |        (PID 27128)          TERMINATES   |
+                 +------------------------------------------+
+
+  OS sends a signal (SIGCHLD) to the parent process (man 7 signal)
+
+  child process becomes a defunct/zombie process
+
+  parent process MUST acknowledge the zombie process
+   via waitpid() or wait()
+
+
+  p = fork();
+
+  if ( p == 0 )
+  {
+    /* CHILD CODE */
+  }
+  else if ( p > 0 )
+  {
+    /* PARENT CODE */
+    ...
+
+    /* ack zombie process */
+    int status;
+    int child_pid = waitpid( p, &status, 0 );  /* BLOCKED */
+  }
+
